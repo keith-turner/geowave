@@ -1,0 +1,89 @@
+package mil.nga.giat.geowave.analytics.spark
+
+import org.scalatest.FlatSpec
+import org.apache.spark.SparkConf
+import org.apache.spark.SparkContext
+import mil.nga.giat.geowave.analytics.spark.dbscan.GeoWaveRDD
+import mil.nga.giat.geowave.analytics.tools.PropertyManagement
+import mil.nga.giat.geowave.analytics.parameters.ClusteringParameters
+import mil.nga.giat.geowave.analytics.parameters.CommonParameters
+import mil.nga.giat.geowave.analytics.tools.model.SpatialIndexModelBuilder
+import mil.nga.giat.geowave.analytics.parameters.ExtractParameters
+import mil.nga.giat.geowave.analytics.parameters.GlobalParameters
+import mil.nga.giat.geowave.analytics.extract.SimpleFeatureGeometryExtractor
+import mil.nga.giat.geowave.vector.adapter.FeatureDataAdapter
+import mil.nga.giat.geowave.analytics.spark.dbscan.FeatureDataAdapterStoreFactory
+import org.apache.spark.SparkContext._
+
+class GeoWaveRDDtest extends FlatSpec {
+
+  val dataTool = new TestSuiteDataTools("testRDD", "geometry:Geometry:srid=4326,pid:String")
+  val dataSet = dataTool.create(100)
+  val conf = new SparkConf().setAppName(
+    "GeoWaveRDDtest").setMaster(
+      "local");
+  GeoWaveRDD.init(conf)
+  val sc = new SparkContext(conf)
+  
+
+  def getConfig = {
+    val propertyManagement = new PropertyManagement();
+
+    propertyManagement.store(
+      ClusteringParameters.Clustering.DISTANCE_THRESHOLDS,
+      "1,1");
+    propertyManagement.store(
+      CommonParameters.Common.INDEX_MODEL_BUILDER_CLASS,
+      classOf[SpatialIndexModelBuilder]);
+    propertyManagement.store(
+      CommonParameters.Common.ADAPTER_STORE_FACTORY,
+      classOf[FeatureDataAdapterStoreFactory]);
+    propertyManagement.store(
+      ExtractParameters.Extract.DIMENSION_EXTRACT_CLASS,
+      classOf[SimpleFeatureGeometryExtractor]);
+    propertyManagement.store(
+      GlobalParameters.Global.CRS_ID,
+      "EPSG:4326");
+    propertyManagement.store(
+      ClusteringParameters.Clustering.GEOMETRIC_DISTANCE_UNIT,
+      "km");
+
+    propertyManagement
+  }
+
+  "A Stack" should "pop values in last-in-first-out order" in {
+    val config = getConfig
+    val rawRDD = sc.parallelize(dataSet, 5)
+    FeatureDataAdapterStoreFactory.saveState(
+      new FeatureDataAdapter(
+        dataTool.featureType),
+      config);
+
+    
+    val allDistances = dataSet.map { x => dataSet.collect { case y => (y._1.getDataId.toString, dataTool.distanceFn.measure(x._2,y._2)) } }
+    
+    val total = allDistances.par.aggregate(0.0)((x, line) => x + line.foldLeft(0.0)((y, v) => y + v._2), _ + _)
+    
+    val totalFar = allDistances.par.aggregate(0)((x, line) => x + line.filter(v => v._2 > 2000 ).foldLeft(0)((y, v) => y + 1), _ + _)
+    
+    rawRDD.foreach( x => { System.out.println (x._1.getDataId().toString())})
+    
+    val partitionedRDD = GeoWaveRDD.neighborPartition(rawRDD, config)
+    
+   // partitionedRDD.countByKey.foreach( x => { System.out.println (x._2 + " " + x._1)})
+
+    val broadcastDistFn = sc.broadcast( dataTool.distanceFn)
+    
+    val result = partitionedRDD.mapPartitionsWithIndex((index, it) => {
+      val pointsInPartition = it.map(_._2).toArray
+      pointsInPartition.filter((sf) => {
+        pointsInPartition.forall((sf2) => {
+           val re= broadcastDistFn.value.measure(sf, sf2);
+           System.out.println(re)
+           re < 2001
+        })
+      }).iterator
+    }).collect
+    assert(result.size == 0)
+  }
+}
