@@ -13,6 +13,11 @@
 		<scala.version>2.10.4</scala.version>
 	</properties>
 	<dependencies>
+	     <dependency>
+			<groupId>com.esotericsoftware.kryo</groupId>
+			<artifactId>kryo</artifactId>
+			<version>2.21</version>
+		</dependency>
 		<dependency>
 			<groupId>org.scala-lang</groupId>
 			<artifactId>scala-library</artifactId>
@@ -41,12 +46,12 @@
 		</dependency>
 		<dependency>
 			<groupId>mil.nga.giat</groupId>
-			<artifactId>geowave-accumulo</artifactId>
+			<artifactId>geowave-datastore-accumulo</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>mil.nga.giat</groupId>
-			<artifactId>geowave-analytics</artifactId>
+			<artifactId>geowave-analytic-api</artifactId>
 			<version>${project.version}</version>
 			<exclusions>
 				<exclusion>
@@ -57,7 +62,7 @@
 		</dependency>
 		<dependency>
 			<groupId>mil.nga.giat</groupId>
-			<artifactId>geowave-vector</artifactId>
+			<artifactId>geowave-adapter-vector</artifactId>
 			<version>${project.version}</version>
 			<exclusions>
 				<exclusion>

@@ -2,17 +2,14 @@ package mil.nga.giat.geowave.analytics.spark
 
 import org.apache.spark.SparkConf
 import org.apache.spark.rdd.{ ShuffledRDD, RDD }
-import mil.nga.giat.geowave.store.query.Query
 import org.apache.hadoop.conf.Configuration
 import org.opengis.feature.simple.SimpleFeature
 import org.apache.spark.SparkContext
 import org.apache.accumulo.core.data.{ Key, Value }
-import mil.nga.giat.geowave.accumulo.mapreduce.input.GeoWaveInputFormat
-import mil.nga.giat.geowave.accumulo.mapreduce.input.GeoWaveInputKey
-import mil.nga.giat.geowave.analytics.tools.partitioners.Partitioner
-import mil.nga.giat.geowave.analytics.tools.partitioners.Partitioner.PartitionData
-import mil.nga.giat.geowave.index.ByteArrayId
 import scala.collection.JavaConverters._
+import mil.nga.giat.geowave.analytic.partitioner.Partitioner.PartitionData
+import mil.nga.giat.geowave.datastore.accumulo.mapreduce.input.GeoWaveInputKey
+import mil.nga.giat.geowave.analytic.partitioner.Partitioner
 
 class PartitionVectorRDD(prev: RDD[(PartitionData, SimpleFeature)])
   extends ShuffledRDD[PartitionData, SimpleFeature, SimpleFeature](prev, new GeowavePartitioner(100))

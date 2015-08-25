@@ -2,10 +2,10 @@ package mil.nga.giat.geowave.analytics.spark;
 
 import java.io.IOException;
 
-import mil.nga.giat.geowave.analytics.tools.ConfigurationWrapper;
-import mil.nga.giat.geowave.analytics.tools.partitioners.OrthodromicDistancePartitioner;
+import mil.nga.giat.geowave.analytic.ConfigurationWrapper;
+import mil.nga.giat.geowave.analytic.partitioner.OrthodromicDistancePartitioner;
 
-public class SerializableOthrodromicPartitioner<T> extends
+class SerializableOthrodromicPartitioner<T> extends
 		OrthodromicDistancePartitioner<T> implements
 		java.io.Serializable
 {
