@@ -19,7 +19,25 @@ class AnalyticRecipesTest extends FlatSpec {
   GeoWaveRDD.init(conf)
   val sc = new SparkContext(conf)
 
-  "One hundred distributed centroids" should "have 10 assigned items" in {
+  "One hundred distributed centroids" should "have 10 assigned distinct items" in {
+    val rawRDD = sc.parallelize(dataSet, 5)
+    val distanceFn = dataTool.distanceFn
+
+    val centroids = dataSet.sliding(1, 100).map(x => new FeatureWritable(x.last._2.getFeatureType(), x.last._2)).toArray
+    
+    val values = AnalyticRecipes.topDistinctK(rawRDD, distanceFn, centroids, 10);
+
+    val mappedFeatures = values.flatMap(x => x._2);
+
+     assert(mappedFeatures.count == 1000) 
+     
+     assert(values.count == 10)
+     
+    assert(values.filter(_._2.length != 10).collect.size == 0)
+
+  }
+  
+   "One hundred distributed centroids" should "have 10 assigned items" in {
     val rawRDD = sc.parallelize(dataSet, 5)
     val distanceFn = dataTool.distanceFn
 
@@ -29,6 +47,7 @@ class AnalyticRecipesTest extends FlatSpec {
 
     values.foreach(x => println(x._1 + "=" + x._2.length))
 
+    assert(values.count == 10)
     assert(values.filter(_._2.length != 10).collect.size == 0)
 
   }
