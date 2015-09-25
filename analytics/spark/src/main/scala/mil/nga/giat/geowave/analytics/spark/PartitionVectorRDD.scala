@@ -11,6 +11,10 @@ import mil.nga.giat.geowave.analytic.partitioner.Partitioner.PartitionData
 import mil.nga.giat.geowave.datastore.accumulo.mapreduce.input.GeoWaveInputKey
 import mil.nga.giat.geowave.analytic.partitioner.Partitioner
 
+/**
+ * Provides partitioned RDD using the provided partitioner.
+ * A Partitioner can assign a SimpleFeature to more than one partition.   
+ */
 class PartitionVectorRDD(prev: RDD[(PartitionData, SimpleFeature)])
   extends ShuffledRDD[PartitionData, SimpleFeature, SimpleFeature](prev, new GeowavePartitioner(100))
 

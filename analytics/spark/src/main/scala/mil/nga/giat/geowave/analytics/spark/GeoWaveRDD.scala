@@ -12,7 +12,15 @@ import mil.nga.giat.geowave.datastore.accumulo.mapreduce.input.GeoWaveInputForma
 import mil.nga.giat.geowave.analytic.ConfigurationWrapper
 import org.apache.spark.serializer.KryoRegistrator
 import com.esotericsoftware.kryo.Kryo
+import mil.nga.giat.geowave.analytic.partitioner.Partitioner
+import mil.nga.giat.geowave.analytic.partitioner.Partitioner.PartitionData
+import scala.collection.JavaConverters._
+import mil.nga.giat.geowave.analytic.partitioner.SerializableOthrodromicPartitioner
 
+/**
+ * Convenience obejct to provide different RDDs.
+ * 
+ */
 object GeoWaveRDD {
 
   def init(conf: SparkConf): SparkConf = {
@@ -36,4 +44,10 @@ object GeoWaveRDD {
     distancePartitioner.initialize(config);
     PartitionVectorRDD(rdd, distancePartitioner)
   }
+
+  def mapByPartition(rdd: RDD[(GeoWaveInputKey, SimpleFeature)],
+    partitioner: Partitioner[SimpleFeature]): RDD[(PartitionData, SimpleFeature)] = {
+    rdd.flatMap(kv => { partitioner.getCubeIdentifiers(kv._2).asScala.map(pd => (pd, kv._2)) })
+  }
+
 }

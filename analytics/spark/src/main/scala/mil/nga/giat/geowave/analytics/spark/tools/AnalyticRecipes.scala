@@ -7,36 +7,80 @@ import mil.nga.giat.geowave.datastore.accumulo.mapreduce.input.GeoWaveInputKey
 import org.apache.spark.rdd.RDD
 import mil.nga.giat.geowave.adapter.vector.FeatureWritable
 import org.apache.spark.SparkContext._
+import mil.nga.giat.geowave.analytic.partitioner.Partitioner.PartitionData
 
 object AnalyticRecipes {
 
-  def findClosest(key: GeoWaveInputKey, feature: SimpleFeature, distFn: DistanceFn[SimpleFeature], centroids: List[SimpleFeature]) = {
-    val best = centroids.map(c => (c, distFn.measure(feature, c))).sortBy(n => n._2).head
-    (best._1.getID(), (best._2, feature))
-  }
-  
-  def distanceToAll(key: GeoWaveInputKey, feature: SimpleFeature, distFn: DistanceFn[SimpleFeature], centroids: List[SimpleFeature]) = {
-     
+  /**
+   * Centroids are of type FeatureWritable for serializable.
+   *
+   * Given centroids, find the k closest distinct neighbors to each centroid.
+   *
+   * What does 'distinct' mean in this case?  A feature can only be associated with one centroid.
+   *  The algorithm has each input vector to choose the closest centroid.  The distinction
+   * lies with who does the choosing.  If the centroid chooses, then any given input vector could be a close neighor to more than
+   * one centroid.
+   *
+   */
+  def searchDistinctKNearestNeighbor(rdd: RDD[(GeoWaveInputKey, SimpleFeature)], distanceFn: DistanceFn[SimpleFeature], centroids: Array[FeatureWritable], k: Int) = {
+    chooseCentroids(rdd.map(x => { findClosest(x._1, x._2, distanceFn, centroids.map(fw => fw.getFeature).toList) }), k)
   }
 
   /**
    * Centroids are of type FeatureWritable for serializable.
-   * 
-   * Given centroids, find the k closest distinct neighbors to each centroid.
-   * 
-   * What does 'distinct' mean in this case? This algorithm does not return the k closest neighbors for any given centroid.
-   * Rather it allows each input vector to choose the closest centroid, retaining the k closest to the centroid.  The distinction
-   * lies with who does the choosing.  If the centroid chooses, then any given input vector could be a close neighor to more than
-   * one centroid.     
-   * 
+   *
+   * Given centroids, find the k closest neighbors to each centroid.
+   *
+   * The centroid chooses, thus any given input vector could be a close neighor to more than
+   * one centroid.
+   *
    */
-  def topDistinctK(rdd: RDD[(GeoWaveInputKey, SimpleFeature)], distanceFn: DistanceFn[SimpleFeature], centroids: Array[FeatureWritable], k: Int) = {
-    val associationsToCentroidsRDD = rdd.map(x => { findClosest(x._1, x._2, distanceFn, centroids.map(fw => fw.getFeature).toList) })
+  def searchKNearestNeighbor(rdd: RDD[(GeoWaveInputKey, SimpleFeature)], distanceFn: DistanceFn[SimpleFeature], centroids: Array[FeatureWritable], k: Int) = {
+    val featurwWithDistanceRDD = rdd.flatMap(x => centroids.map(fw => fw.getFeature).toList.map(c => { (c.getID(), (distanceFn.measure(x._2, c), x._2)) }))
+    chooseCentroids(featurwWithDistanceRDD, k)
+  }
+
+  /**
+   * Compare all SimpleFeatures in the same partition to each other.
+   */
+  def compare(distanceFn: DistanceFn[SimpleFeature], distance: Double)(t: (PartitionData, Iterable[SimpleFeature])): TraversableOnce[(SimpleFeature, SimpleFeature, Double)] =
+    compareAll(distanceFn, distance)(t._2.toArray)
+
+    /**
+   * Compare all SimpleFeatures in the same partition to each other.
+   */
+  def compareAll(distanceFn: DistanceFn[SimpleFeature], distance: Double)(pointsInPartition: Array[SimpleFeature]): TraversableOnce[(SimpleFeature, SimpleFeature, Double)] = {
+    val tuples = for (
+      i <- 0 to (pointsInPartition.length - 1);
+      j <- (i + 1) to (pointsInPartition.length - 1)
+    ) yield (pointsInPartition(i), pointsInPartition(j), distanceFn.measure(pointsInPartition(i), pointsInPartition(j)))
+    tuples.filter(p => p._3 < distance).iterator
+  }
+
+  /**
+   * Compare all SimpleFeatures in the same partition to each other.
+   */
+  def compareByPartition(distanceFn: DistanceFn[SimpleFeature], distance: Double)(it: Iterator[(PartitionData, SimpleFeature)]) = {
+    mapIntoLists(it).flatMap(t => AnalyticRecipes.compareAll(distanceFn, distance)(t._2.toArray)).toIterator
+  }
+
+  private def mapIntoLists(it: Iterator[(PartitionData, SimpleFeature)]): Map[PartitionData, List[SimpleFeature]] = {
+    it.foldLeft(Map[PartitionData, List[SimpleFeature]]()) {
+      (m, t) => { m + (t._1 -> (m.getOrElse(t._1, List[SimpleFeature]()).::(t._2))) }
+    }
+  }
+
+  private def chooseCentroids(associationsToCentroidsRDD: RDD[(String, (Double, SimpleFeature))], k: Int) = {
     val addToSet = (s: Array[(Double, SimpleFeature)], v: (Double, SimpleFeature)) => { AnalyticRecipes.addToTopN(k, v, s) }
     val mergePartitionSets = (p1: Array[(Double, SimpleFeature)], p2: Array[(Double, SimpleFeature)]) => {
       p1.foldLeft(p2)((s1, v) => AnalyticRecipes.addToTopN(k, v, s1))
     }
     associationsToCentroidsRDD.aggregateByKey(new Array[(Double, SimpleFeature)](10))(addToSet, mergePartitionSets)
+  }
+
+  def findClosest(key: GeoWaveInputKey, feature: SimpleFeature, distFn: DistanceFn[SimpleFeature], centroids: List[SimpleFeature]) = {
+    val best = centroids.map(c => (c, distFn.measure(feature, c))).sortBy(n => n._2).head
+    (best._1.getID(), (best._2, feature))
   }
 
   private def addToTopN(n: Int, newEl: (Double, SimpleFeature), list: Array[(Double, SimpleFeature)]): Array[(Double, SimpleFeature)] = {
@@ -66,25 +110,6 @@ object AnalyticRecipes {
   private def addToTopN(n: Int, newEl: (Double, SimpleFeature), list: PriorityQueue[(Double, SimpleFeature)]): PriorityQueue[(Double, SimpleFeature)] = {
     list.enqueue(newEl);
     if (list.size > n) list.take(n) else list
-  }
-  
-  
-  /**
-   * Centroids are of type FeatureWritable for serializable.
-   * 
-   * Given centroids, find the k closest neighbors to each centroid.
-   * 
-   * The centroid chooses, thus any given input vector could be a close neighor to more than
-   * one centroid.     
-   * 
-   */
-  def topK(rdd: RDD[(GeoWaveInputKey, SimpleFeature)], distanceFn: DistanceFn[SimpleFeature], centroids: Array[FeatureWritable], k: Int) = {
-    val associationsToCentroidsRDD = rdd.flatMap(x => centroids.map(fw => fw.getFeature).toList.map(c => (c, (distanceFn.measure(x._2, c),x._2))))
-    val addToSet = (s: Array[(Double, SimpleFeature)], v: (Double, SimpleFeature)) => { AnalyticRecipes.addToTopN(k, v, s) }
-    val mergePartitionSets = (p1: Array[(Double, SimpleFeature)], p2: Array[(Double, SimpleFeature)]) => {
-      p1.foldLeft(p2)((s1, v) => AnalyticRecipes.addToTopN(k, v, s1))
-    }
-    associationsToCentroidsRDD.aggregateByKey(new Array[(Double, SimpleFeature)](10))(addToSet, mergePartitionSets)
   }
 
 }
