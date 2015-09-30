@@ -41,7 +41,7 @@ object AnalyticRecipes {
   }
 
   /**
-   * Compare all SimpleFeatures in the same partition to each other.
+   * Compare all SimpleFeatures in the same partition to each other. Return those pairs less than the provided distance.
    */
   def compare(distanceFn: DistanceFn[SimpleFeature], distance: Double)(t: (PartitionData, Iterable[SimpleFeature])): TraversableOnce[(SimpleFeature, SimpleFeature, Double)] =
     compareAll(distanceFn, distance)(t._2.toArray)

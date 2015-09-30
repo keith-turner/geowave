@@ -138,7 +138,7 @@ object GeoWaveRDD {
     }) saveAsNewAPIHadoopDataset (job.getConfiguration)
   }
 
-  def neighborPartition(rdd: RDD[(GeoWaveInputKey, SimpleFeature)], config: ConfigurationWrapper): PartitionVectorRDD = {
+  def sparkPartition(rdd: RDD[(GeoWaveInputKey, SimpleFeature)], config: ConfigurationWrapper): PartitionVectorRDD = {
     val distancePartitioner = new SerializableOthrodromicPartitioner[SimpleFeature]();
     distancePartitioner.initialize(config);
     PartitionVectorRDD(rdd, distancePartitioner)

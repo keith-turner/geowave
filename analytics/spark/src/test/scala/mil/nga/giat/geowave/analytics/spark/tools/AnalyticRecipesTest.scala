@@ -101,7 +101,7 @@ class AnalyticRecipesTest extends FlatSpec {
         dataTool.featureType),
       config);
 
-    val partitionedRDD = GeoWaveRDD.neighborPartition(rawRDD, config)
+    val partitionedRDD = GeoWaveRDD.sparkPartition(rawRDD, config)
 
     val result = toMap(partitionedRDD.mapPartitions(AnalyticRecipes.compareByPartition(distanceFn, 10000)).distinct.collect)
     
