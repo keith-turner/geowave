@@ -129,6 +129,8 @@ abstract public class AbstractDataAdapter<T> implements
 	public AdapterPersistenceEncoding encode(
 			final T entry,
 			final CommonIndexModel indexModel ) {
+		System.out.println("Encoding adapter id: " + getAdapterId().getString());
+		
 		final PersistentDataset<CommonIndexValue> indexData = new PersistentDataset<CommonIndexValue>();
 		final Set<ByteArrayId> nativeFieldsInIndex = new HashSet<ByteArrayId>();
 		for (final DimensionField<? extends CommonIndexValue> dimension : indexModel.getDimensions()) {
@@ -189,7 +191,7 @@ abstract public class AbstractDataAdapter<T> implements
 		for (final PersistentValue<Object> fieldValue : data.getAdapterExtendedData().getValues()) {
 			builder.setField(fieldValue);
 		}
-		return builder.buildRow(data.getDataId());
+		return builder.buildRow(data.getAdapterId());
 	}
 
 	abstract protected RowBuilder<T, Object> newBuilder();

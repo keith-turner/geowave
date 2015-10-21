@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import mil.nga.giat.geowave.adapter.vector.FeatureDataAdapter;
+import mil.nga.giat.geowave.adapter.vector.WholeFeatureDataAdapter;
 import mil.nga.giat.geowave.core.geotime.GeometryUtils;
 import mil.nga.giat.geowave.core.geotime.IndexType;
 import mil.nga.giat.geowave.core.geotime.store.query.SpatialQuery;
@@ -154,7 +155,7 @@ public class GeotoolsQueryExample
 		System.out.println("Ingesting canned data...");
 
 		dataStore.ingest(
-				new FeatureDataAdapter(
+				new WholeFeatureDataAdapter(
 						getPointSimpleFeatureType()),
 				index,
 				points.iterator());
