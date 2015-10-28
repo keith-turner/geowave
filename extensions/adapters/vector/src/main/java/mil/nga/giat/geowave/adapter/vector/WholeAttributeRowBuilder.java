@@ -1,6 +1,5 @@
 package mil.nga.giat.geowave.adapter.vector;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 
@@ -10,11 +9,8 @@ import mil.nga.giat.geowave.core.index.StringUtils;
 import mil.nga.giat.geowave.core.store.adapter.NativeFieldHandler.RowBuilder;
 import mil.nga.giat.geowave.core.store.data.PersistentValue;
 
-import org.geotools.feature.simple.SimpleFeatureBuilder;
+import org.apache.log4j.Logger;
 import org.opengis.feature.simple.SimpleFeature;
-import org.opengis.feature.simple.SimpleFeatureType;
-
-import com.vividsolutions.jts.io.ParseException;
 
 /**
  * A GeoWave RowBuilder, used internally by AbstractDataAdapter to construct
@@ -23,46 +19,30 @@ import com.vividsolutions.jts.io.ParseException;
  * SimpleFeatureBuilder.
  * 
  */
-public class WholeAttributeRowBuilder implements
-		RowBuilder<SimpleFeature, Object>
-{
+public class WholeAttributeRowBuilder implements RowBuilder<SimpleFeature, Object> {
 	private final HashMap<String, Object> idToValue = new HashMap<String, Object>();
-//	private final SimpleFeatureBuilder builder;
+	
+	private final static Logger LOGGER = Logger.getLogger(WholeAttributeRowBuilder.class);
 
-	public WholeAttributeRowBuilder(
-			final SimpleFeatureType type ) {
-//		builder = new SimpleFeatureBuilder(
-//				type);
+	public WholeAttributeRowBuilder() {
 	}
 
 	@Override
-	public SimpleFeature buildRow(
-			final ByteArrayId dataId ) {
+	public SimpleFeature buildRow(final ByteArrayId dataId) {
 		TypeConverter tc = new TypeConverter();
 		SimpleFeature deserializedSimpleFeature = null;
 		try {
 			List<SimpleFeature> features = tc.deserializeSingleFeatureCollection((byte[]) idToValue.get(StringUtils.stringFromBinary(dataId.getBytes())));
-			System.out.println("Size of collection = " + features.size());
 			deserializedSimpleFeature = features.get(0);
-		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (ParseException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		} catch (Exception e) {
+			LOGGER.error("Unable to deserialize SimpleFeature using dataId '" + dataId.toString() + "'", e);
 		}
-		
-//		builder.buildFeature(id)
-		return deserializedSimpleFeature;//builder.buildFeature(StringUtils.stringFromBinary(dataId.getBytes()));
+
+		return deserializedSimpleFeature;
 	}
 
 	@Override
-	public void setField(
-			final PersistentValue<Object> fieldValue ) {
-		idToValue.put(StringUtils.stringFromBinary(fieldValue.getId().getBytes()),
-				fieldValue.getValue());
+	public void setField(final PersistentValue<Object> fieldValue) {
+		idToValue.put(StringUtils.stringFromBinary(fieldValue.getId().getBytes()), fieldValue.getValue());
 	}
 }

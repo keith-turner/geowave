@@ -5,7 +5,7 @@ import mil.nga.giat.geowave.core.store.data.field.FieldWriter;
 
 import org.opengis.feature.simple.SimpleFeature;
 
-public class MyWriter implements
+public class WholeFeatureWriter implements
 		FieldWriter<SimpleFeature, Object>
 {
 	@Override

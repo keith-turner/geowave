@@ -215,26 +215,12 @@ public class WholeFeatureDataAdapter extends AbstractDataAdapter<SimpleFeature> 
 	 * @return
 	 */
 	private static List<NativeFieldHandler<SimpleFeature, Object>> typeToFieldHandlers(final SimpleFeatureType type) {
-		// final List<NativeFieldHandler<SimpleFeature, Object>> nativeHandlers = new ArrayList<NativeFieldHandler<SimpleFeature, Object>>(
-		// type.getAttributeCount());
 		final List<NativeFieldHandler<SimpleFeature, Object>> nativeHandlers = new ArrayList<NativeFieldHandler<SimpleFeature, Object>>(1);
-
-		// final List<NativeFieldHandler<DefaultFeatureCollection, Object>> nativeHandlers = new ArrayList<NativeFieldHandler<DefaultFeatureCollection,
-		// Object>>(
-		// type.getAttributeCount());
-		// for (final AttributeDescriptor attrDesc : type.getAttributeDescriptors()) {
-		// nativeHandlers.add(new WholeFeatureAttributeHandler(attrDesc));
-		// }
-		// return nativeHandlers;
 
 		for (final AttributeDescriptor attrDesc : type.getAttributeDescriptors()) {
 			nativeHandlers.add(new WholeFeatureAttributeHandler(attrDesc, type.getName()));
 		}
 
-		// nativeHandlers.add(new WholeFeatureAttributeHandler());//type.getAttributeDescriptors()));
-		// for (final AttributeDescriptor attrDesc : type.getAttributeDescriptors()) {
-		// nativeHandlers.add(new FeatureAttributeHandler(attrDesc));
-		// }
 		return nativeHandlers;
 	}
 
@@ -255,7 +241,6 @@ public class WholeFeatureDataAdapter extends AbstractDataAdapter<SimpleFeature> 
 		} else if (timeDescriptors.getTime() != null) {
 			// if we didn't succeed in identifying a start and end time,
 			// just grab the first attribute and use it as a timestamp
-
 			return new FeatureTimestampHandler(timeDescriptors.getTime(), new WholeAdaptorProxyFieldLevelVisibilityHandler(timeDescriptors.getTime()
 					.getLocalName(), this));
 		}
@@ -289,54 +274,14 @@ public class WholeFeatureDataAdapter extends AbstractDataAdapter<SimpleFeature> 
 		reprojectedType = builder.buildFeatureType();
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public FieldReader<Object> getReader(final ByteArrayId fieldId) {
-//		final AttributeDescriptor descriptor = reprojectedType.getDescriptor(StringUtils.stringFromBinary(fieldId.getBytes()));
-//		final Class<?> bindingClass = descriptor.getType().getBinding();
-//		return (FieldReader<Object>) FieldUtils.getDefaultReaderForClass(bindingClass);
-		return (FieldReader) new MyReader();
+		return (FieldReader<Object>) new WholeFeatureReader();
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public FieldWriter<SimpleFeature, Object> getWriter(final ByteArrayId fieldId) {
-//		System.out.print(fieldId + " - ");
-//		System.out.println(fieldId.getString());
-
-		// List<AttributeDescriptor> foo = new ArrayList<AttributeDescriptor>();
-		// for(PropertyDescriptor bar : reprojectedType.getDescriptors()) {
-		// foo.add(reprojectedType.getDescriptor(bar.getName()));
-		// }
-		//
-		// final AttributeDescriptor descriptor = reprojectedType.getDescriptor(StringUtils.stringFromBinary(fieldId.getBytes()));
-
-		// final Class<?> bindingClass = descriptor.getType().getBinding();
-//		FieldWriter<SimpleFeature, Object> basicWriter = null;
-//		try {
-//			Class<?> bindingClass = Class.forName("[L" + SimpleFeature.class.getName() + ";");
-//			Class<?> bindingClass = Class.forName(SingleFeatureCollection.class.getName());
-//			Class<?> bindingClass = SingleFeatureCollection.class;
-//
-//			if (fieldVisiblityHandler != null) {
-//				basicWriter = (FieldWriter<SimpleFeature, Object>) FieldUtils.getDefaultWriterForClass(bindingClass, fieldVisiblityHandler);
-//			} else {
-//				basicWriter = (FieldWriter<SimpleFeature, Object>) FieldUtils.getDefaultWriterForClass(bindingClass);
-//			}
-//
-//			if (basicWriter == null) {
-//				LOGGER.error("BasicWriter not found for binding type:" + bindingClass.getName().toString());
-//			}
-//		} catch (ClassNotFoundException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-
-		// FieldUtils.
-
-		// return fieldVisibilityManagement.createVisibilityWriter(descriptor.getLocalName(), basicWriter, fieldVisiblityHandler, visibilityAttributeName);
-//		return fieldVisibilityManagement.createVisibilityWriter(fieldId.getString(), basicWriter, fieldVisiblityHandler, visibilityAttributeName);
-			return (FieldWriter) new MyWriter();
+			return (FieldWriter<SimpleFeature, Object>) new WholeFeatureWriter();
 	}
 
 	@Override
@@ -458,44 +403,6 @@ public class WholeFeatureDataAdapter extends AbstractDataAdapter<SimpleFeature> 
 		return null;
 	}
 
-	// @Override
-	// public SimpleFeature decode(final IndexedAdapterPersistenceEncoding data, final Index index) {
-	// final RowBuilder<SimpleFeature, Object> builder = newBuilder();
-	// final CommonIndexModel indexModel = index.getIndexModel();
-	// for (final DimensionField<? extends CommonIndexValue> dimension : indexModel.getDimensions()) {
-	// final IndexFieldHandler<SimpleFeature, CommonIndexValue, Object> fieldHandler = (IndexFieldHandler<SimpleFeature, CommonIndexValue, Object>)
-	// getFieldHandler(dimension);
-	// if (fieldHandler == null) {
-	// LOGGER.warn("Unable to find field handler for data adapter '" + StringUtils.stringFromBinary(getAdapterId().getBytes())
-	// + "' and indexed field '" + StringUtils.stringFromBinary(dimension.getFieldId().getBytes()));
-	// continue;
-	// }
-	// final CommonIndexValue value = data.getCommonData().getValue(dimension.getFieldId());
-	// if (value == null) {
-	// continue;
-	// }
-	//
-	// final PersistentValue<Object>[] values = fieldHandler.toNativeValues(value);
-	// if ((values != null) && (values.length > 0)) {
-	// for (final PersistentValue<Object> v : values) {
-	// builder.setField(v);
-	// }
-	// }
-	// }
-	//
-	// PersistentDataset<Object> ed = data.getAdapterExtendedData();
-	// PersistentValue<Object> onlyValue = ed.getValues().size() > 0 ? ed.getValues().iterator().next() : null;
-	// if (onlyValue != null) {
-	// System.out.println(onlyValue);
-	// } else {
-	// System.out.println("Why is the value null???");
-	// System.exit(0);
-	// }
-	// for (final PersistentValue<Object> fieldValue : data.getAdapterExtendedData().getValues()) {
-	// builder.setField(fieldValue);
-	// }
-	// return builder.buildRow(null);// data.getDataId());
-	// }
 
 	@Override
 	public ByteArrayId getAdapterId() {
@@ -520,7 +427,7 @@ public class WholeFeatureDataAdapter extends AbstractDataAdapter<SimpleFeature> 
 
 	@Override
 	protected RowBuilder<SimpleFeature, Object> newBuilder() {
-		return new WholeAttributeRowBuilder(reprojectedType);
+		return new WholeAttributeRowBuilder();
 	}
 
 	public SimpleFeatureType getType() {
