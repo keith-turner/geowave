@@ -5,14 +5,11 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
-
-//import mil.nga.giat.geowave.adapter.raster.adapter.RasterTileWriter;
 import mil.nga.giat.geowave.adapter.vector.plugin.GeoWaveGTDataStore;
 import mil.nga.giat.geowave.adapter.vector.plugin.visibility.JsonDefinitionColumnVisibilityManagement;
 import mil.nga.giat.geowave.adapter.vector.plugin.visibility.WholeAdaptorProxyFieldLevelVisibilityHandler;
 import mil.nga.giat.geowave.adapter.vector.stats.StatsConfigurationCollection.SimpleFeatureStatsConfigurationCollection;
 import mil.nga.giat.geowave.adapter.vector.stats.StatsManager;
-import mil.nga.giat.geowave.adapter.vector.types.generated.SingleFeatureCollection;
 import mil.nga.giat.geowave.adapter.vector.util.FeatureDataUtils;
 import mil.nga.giat.geowave.adapter.vector.utils.SimpleFeatureUserDataConfigurationSet;
 import mil.nga.giat.geowave.adapter.vector.utils.TimeDescriptors;
@@ -30,7 +27,6 @@ import mil.nga.giat.geowave.core.store.adapter.statistics.DataStatistics;
 import mil.nga.giat.geowave.core.store.adapter.statistics.DataStatisticsVisibilityHandler;
 import mil.nga.giat.geowave.core.store.adapter.statistics.StatisticalDataAdapter;
 import mil.nga.giat.geowave.core.store.data.field.FieldReader;
-import mil.nga.giat.geowave.core.store.data.field.FieldUtils;
 import mil.nga.giat.geowave.core.store.data.field.FieldVisibilityHandler;
 import mil.nga.giat.geowave.core.store.data.field.FieldWriter;
 import mil.nga.giat.geowave.core.store.data.visibility.VisibilityManagement;
@@ -39,7 +35,6 @@ import mil.nga.giat.geowave.core.store.index.CommonIndexValue;
 import mil.nga.giat.geowave.datastore.accumulo.mapreduce.HadoopDataAdapter;
 import mil.nga.giat.geowave.datastore.accumulo.mapreduce.HadoopWritableSerializer;
 
-import org.apache.avro.specific.SpecificDatumWriter;
 import org.apache.log4j.Logger;
 import org.geotools.data.DataUtilities;
 import org.geotools.feature.SchemaException;
@@ -138,46 +133,6 @@ public class WholeFeatureDataAdapter extends AbstractDataAdapter<SimpleFeature> 
 				new JsonDefinitionColumnVisibilityManagement<SimpleFeature>());
 	}
 
-	public static void main(String[] args) throws ClassNotFoundException {
-		System.out.println(SimpleFeature.class);
-		Class<?> bindingClass = Class.forName("[L" + SimpleFeature.class.getName() + ";");
-		System.out.println(bindingClass);
-		System.out.println(SimpleFeature.class.getName());
-		
-		bindingClass = SpecificDatumWriter.class;
-		final SpecificDatumWriter<SingleFeatureCollection> datumWriter = new SpecificDatumWriter<SingleFeatureCollection>();
-		System.out.println(datumWriter.getClass());
-		FieldWriter<SimpleFeature, Object> basicWriter = (FieldWriter<SimpleFeature, Object>) FieldUtils.getDefaultWriterForClass(bindingClass);
-//		System.out.println("null = " + basicWriter == null);
-		
-		if (basicWriter == null) {
-			LOGGER.error("BasicWriter not found for binding type:" + bindingClass.getName().toString());
-		} else {
-			System.out.println("yay");
-		}
-//		final String NAME = "PointSimpleFeatureType";
-//		final SimpleFeatureTypeBuilder sftBuilder = new SimpleFeatureTypeBuilder();
-//		final AttributeTypeBuilder atBuilder = new AttributeTypeBuilder();
-//		sftBuilder.setName(NAME);
-//		sftBuilder.add(atBuilder.binding(String.class).nillable(false).buildDescriptor("locationName"));
-//		sftBuilder.add(atBuilder.binding(Geometry.class).nillable(false).buildDescriptor("geometry"));
-//		SimpleFeatureType sft = sftBuilder.buildFeatureType();
-//
-//		SimpleFeatureType reprojectedType2 = SimpleFeatureTypeBuilder.retype(sft, GeoWaveGTDataStore.DEFAULT_CRS);
-//
-//		ByteArrayId fieldId = new ByteArrayId("PointSimpleFeatureType");
-//		for (PropertyDescriptor bar : reprojectedType2.getDescriptors()) {
-//			System.out.print(bar + " - ");
-//			System.out.println(bar.getType().getBinding() + " - " + bar.getType().getBinding().getName());
-//			System.out.println(Class.forName("[L" + bar.getType().getBinding().getName() + ";"));
-//		}
-//		AttributeDescriptor foo = reprojectedType2.getDescriptor(StringUtils.stringFromBinary(fieldId.getBytes()));
-//		System.out.println(foo == null);
-
-		System.exit(0);
-
-	}
-
 	public WholeFeatureDataAdapter(final SimpleFeatureType type,
 			final List<PersistentIndexFieldHandler<SimpleFeature, ? extends CommonIndexValue, Object>> customIndexHandlers,
 			final FieldVisibilityHandler<SimpleFeature, Object> fieldVisiblityHandler, final VisibilityManagement<SimpleFeature> visibilityManagement) {
@@ -207,13 +162,6 @@ public class WholeFeatureDataAdapter extends AbstractDataAdapter<SimpleFeature> 
 		statsManager = new StatsManager(this, persistedType, reprojectedType, transform);
 	}
 
-	/**
-	 * mrdahlb - okay lets get creative.  I think I need one handler for this avro blob, can probably create any ID I want for it.
-	 * 
-	 * What is the type coming in?  I know it's a schema for the attributes but was that on me to create?  Don't think so.....
-	 * @param type
-	 * @return
-	 */
 	private static List<NativeFieldHandler<SimpleFeature, Object>> typeToFieldHandlers(final SimpleFeatureType type) {
 		final List<NativeFieldHandler<SimpleFeature, Object>> nativeHandlers = new ArrayList<NativeFieldHandler<SimpleFeature, Object>>(1);
 
@@ -281,7 +229,7 @@ public class WholeFeatureDataAdapter extends AbstractDataAdapter<SimpleFeature> 
 
 	@Override
 	public FieldWriter<SimpleFeature, Object> getWriter(final ByteArrayId fieldId) {
-			return (FieldWriter<SimpleFeature, Object>) new WholeFeatureWriter();
+		return (FieldWriter<SimpleFeature, Object>) new WholeFeatureWriter();
 	}
 
 	@Override
@@ -403,17 +351,10 @@ public class WholeFeatureDataAdapter extends AbstractDataAdapter<SimpleFeature> 
 		return null;
 	}
 
-
 	@Override
 	public ByteArrayId getAdapterId() {
 		return new ByteArrayId(StringUtils.stringToBinary(reprojectedType.getTypeName()));
 	}
-
-	// @Override
-	// public ByteArrayId getAdapterId() {
-	// return new ByteArrayId(
-	// StringUtils.stringToBinary(featuresPerEntry + reprojectedType.getTypeName()));
-	// }
 
 	@Override
 	public boolean isSupported(final SimpleFeature entry) {
