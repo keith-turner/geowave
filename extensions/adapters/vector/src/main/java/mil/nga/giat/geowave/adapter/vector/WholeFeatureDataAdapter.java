@@ -90,8 +90,11 @@ import org.opengis.referencing.operation.MathTransform;
  * 
  */
 @SuppressWarnings("unchecked")
-public class WholeFeatureDataAdapter extends AbstractDataAdapter<SimpleFeature> implements StatisticalDataAdapter<SimpleFeature>,
-		HadoopDataAdapter<SimpleFeature, FeatureWritable> {
+public class WholeFeatureDataAdapter extends
+		AbstractDataAdapter<SimpleFeature> implements
+		StatisticalDataAdapter<SimpleFeature>,
+		HadoopDataAdapter<SimpleFeature, FeatureWritable>
+{
 	private final static Logger LOGGER = Logger.getLogger(WholeFeatureDataAdapter.class);
 	// the original coordinate system will always be represented internally by
 	// the persisted type
@@ -112,61 +115,102 @@ public class WholeFeatureDataAdapter extends AbstractDataAdapter<SimpleFeature> 
 	// so 0xa0, 0xa1, 0xa2 etc.
 	final static byte VERSION = (byte) 0xa0;
 
-	protected WholeFeatureDataAdapter() {
+	protected WholeFeatureDataAdapter() {}
+
+	public WholeFeatureDataAdapter(
+			final SimpleFeatureType type ) {
+		this(
+				type,
+				new ArrayList<PersistentIndexFieldHandler<SimpleFeature, ? extends CommonIndexValue, Object>>());
 	}
 
-	public WholeFeatureDataAdapter(final SimpleFeatureType type) {
-		this(type, new ArrayList<PersistentIndexFieldHandler<SimpleFeature, ? extends CommonIndexValue, Object>>());
+	public WholeFeatureDataAdapter(
+			final SimpleFeatureType type,
+			final VisibilityManagement<SimpleFeature> visibilityManagement ) {
+		this(
+				type,
+				new ArrayList<PersistentIndexFieldHandler<SimpleFeature, ? extends CommonIndexValue, Object>>(),
+				null,
+				visibilityManagement);
 	}
 
-	public WholeFeatureDataAdapter(final SimpleFeatureType type, final VisibilityManagement<SimpleFeature> visibilityManagement) {
-		this(type, new ArrayList<PersistentIndexFieldHandler<SimpleFeature, ? extends CommonIndexValue, Object>>(), null, visibilityManagement);
-	}
-
-	public WholeFeatureDataAdapter(final SimpleFeatureType type,
-			final List<PersistentIndexFieldHandler<SimpleFeature, ? extends CommonIndexValue, Object>> customIndexHandlers) {
-		this(type, customIndexHandlers, null, new JsonDefinitionColumnVisibilityManagement<SimpleFeature>());
-	}
-
-	public WholeFeatureDataAdapter(final SimpleFeatureType type, final FieldVisibilityHandler<SimpleFeature, Object> fieldVisiblityHandler) {
-		this(type, new ArrayList<PersistentIndexFieldHandler<SimpleFeature, ? extends CommonIndexValue, Object>>(), fieldVisiblityHandler,
+	public WholeFeatureDataAdapter(
+			final SimpleFeatureType type,
+			final List<PersistentIndexFieldHandler<SimpleFeature, ? extends CommonIndexValue, Object>> customIndexHandlers ) {
+		this(
+				type,
+				customIndexHandlers,
+				null,
 				new JsonDefinitionColumnVisibilityManagement<SimpleFeature>());
 	}
 
-	public WholeFeatureDataAdapter(final SimpleFeatureType type,
+	public WholeFeatureDataAdapter(
+			final SimpleFeatureType type,
+			final FieldVisibilityHandler<SimpleFeature, Object> fieldVisiblityHandler ) {
+		this(
+				type,
+				new ArrayList<PersistentIndexFieldHandler<SimpleFeature, ? extends CommonIndexValue, Object>>(),
+				fieldVisiblityHandler,
+				new JsonDefinitionColumnVisibilityManagement<SimpleFeature>());
+	}
+
+	public WholeFeatureDataAdapter(
+			final SimpleFeatureType type,
 			final List<PersistentIndexFieldHandler<SimpleFeature, ? extends CommonIndexValue, Object>> customIndexHandlers,
-			final FieldVisibilityHandler<SimpleFeature, Object> fieldVisiblityHandler, final VisibilityManagement<SimpleFeature> visibilityManagement) {
-		super(customIndexHandlers, new ArrayList<NativeFieldHandler<SimpleFeature, Object>>(), type);
+			final FieldVisibilityHandler<SimpleFeature, Object> fieldVisiblityHandler,
+			final VisibilityManagement<SimpleFeature> visibilityManagement ) {
+		super(
+				customIndexHandlers,
+				new ArrayList<NativeFieldHandler<SimpleFeature, Object>>(),
+				type);
 		setFeatureType(type);
 		this.fieldVisiblityHandler = fieldVisiblityHandler;
 		fieldVisibilityManagement = visibilityManagement;
 	}
 
-	private void setFeatureType(final SimpleFeatureType type) {
+	private void setFeatureType(
+			final SimpleFeatureType type ) {
 		persistedType = type;
 		determineVisibilityAttribute();
 		if (!GeoWaveGTDataStore.DEFAULT_CRS.equals(type.getCoordinateReferenceSystem())) {
-			reprojectedType = SimpleFeatureTypeBuilder.retype(type, GeoWaveGTDataStore.DEFAULT_CRS);
+			reprojectedType = SimpleFeatureTypeBuilder.retype(
+					type,
+					GeoWaveGTDataStore.DEFAULT_CRS);
 
 			if (type.getCoordinateReferenceSystem() != null) {
 				try {
-					transform = CRS.findMathTransform(type.getCoordinateReferenceSystem(), GeoWaveGTDataStore.DEFAULT_CRS, true);
-				} catch (final FactoryException e) {
-					LOGGER.warn("Unable to create coordinate reference system transform", e);
+					transform = CRS.findMathTransform(
+							type.getCoordinateReferenceSystem(),
+							GeoWaveGTDataStore.DEFAULT_CRS,
+							true);
+				}
+				catch (final FactoryException e) {
+					LOGGER.warn(
+							"Unable to create coordinate reference system transform",
+							e);
 				}
 			}
-		} else {
+		}
+		else {
 			reprojectedType = persistedType;
 		}
 		resetTimeDescriptors();
-		statsManager = new StatsManager(this, persistedType, reprojectedType, transform);
+		statsManager = new StatsManager(
+				this,
+				persistedType,
+				reprojectedType,
+				transform);
 	}
 
-	private static List<NativeFieldHandler<SimpleFeature, Object>> typeToFieldHandlers(final SimpleFeatureType type) {
-		final List<NativeFieldHandler<SimpleFeature, Object>> nativeHandlers = new ArrayList<NativeFieldHandler<SimpleFeature, Object>>(1);
+	private static List<NativeFieldHandler<SimpleFeature, Object>> typeToFieldHandlers(
+			final SimpleFeatureType type ) {
+		final List<NativeFieldHandler<SimpleFeature, Object>> nativeHandlers = new ArrayList<NativeFieldHandler<SimpleFeature, Object>>(
+				1);
 
 		for (final AttributeDescriptor attrDesc : type.getAttributeDescriptors()) {
-			nativeHandlers.add(new WholeFeatureAttributeHandler(attrDesc, type.getName()));
+			nativeHandlers.add(new WholeFeatureAttributeHandler(
+					attrDesc,
+					type.getName()));
 		}
 
 		return nativeHandlers;
@@ -180,23 +224,35 @@ public class WholeFeatureDataAdapter extends AbstractDataAdapter<SimpleFeature> 
 		return fieldVisibilityManagement;
 	}
 
-	private IndexFieldHandler<SimpleFeature, Time, Object> getTimeRangeHandler(final SimpleFeatureType featureType) {
+	private IndexFieldHandler<SimpleFeature, Time, Object> getTimeRangeHandler(
+			final SimpleFeatureType featureType ) {
 		final TimeDescriptors timeDescriptors = inferTimeAttributeDescriptor(featureType);
 
 		if ((timeDescriptors.getStartRange() != null) && (timeDescriptors.getEndRange() != null)) {
-			return (new FeatureTimeRangeHandler(new FeatureAttributeHandler(timeDescriptors.getStartRange()), new FeatureAttributeHandler(
-					timeDescriptors.getEndRange()), new WholeAdaptorProxyFieldLevelVisibilityHandler(timeDescriptors.getStartRange().getLocalName(), this)));
-		} else if (timeDescriptors.getTime() != null) {
+			return (new FeatureTimeRangeHandler(
+					new FeatureAttributeHandler(
+							timeDescriptors.getStartRange()),
+					new FeatureAttributeHandler(
+							timeDescriptors.getEndRange()),
+					new WholeAdaptorProxyFieldLevelVisibilityHandler(
+							timeDescriptors.getStartRange().getLocalName(),
+							this)));
+		}
+		else if (timeDescriptors.getTime() != null) {
 			// if we didn't succeed in identifying a start and end time,
 			// just grab the first attribute and use it as a timestamp
-			return new FeatureTimestampHandler(timeDescriptors.getTime(), new WholeAdaptorProxyFieldLevelVisibilityHandler(timeDescriptors.getTime()
-					.getLocalName(), this));
+			return new FeatureTimestampHandler(
+					timeDescriptors.getTime(),
+					new WholeAdaptorProxyFieldLevelVisibilityHandler(
+							timeDescriptors.getTime().getLocalName(),
+							this));
 		}
 		return null;
 	}
 
 	@Override
-	protected List<IndexFieldHandler<SimpleFeature, ? extends CommonIndexValue, Object>> getDefaultTypeMatchingHandlers(final Object typeObj) {
+	protected List<IndexFieldHandler<SimpleFeature, ? extends CommonIndexValue, Object>> getDefaultTypeMatchingHandlers(
+			final Object typeObj ) {
 		if ((typeObj != null) && (typeObj instanceof SimpleFeatureType)) {
 			final SimpleFeatureType internalType = (SimpleFeatureType) typeObj;
 
@@ -207,15 +263,19 @@ public class WholeFeatureDataAdapter extends AbstractDataAdapter<SimpleFeature> 
 				defaultHandlers.add(timeHandler);
 			}
 
-			defaultHandlers.add(new FeatureGeometryHandler(internalType.getGeometryDescriptor(), new WholeAdaptorProxyFieldLevelVisibilityHandler(internalType
-					.getGeometryDescriptor().getLocalName(), this)));
+			defaultHandlers.add(new FeatureGeometryHandler(
+					internalType.getGeometryDescriptor(),
+					new WholeAdaptorProxyFieldLevelVisibilityHandler(
+							internalType.getGeometryDescriptor().getLocalName(),
+							this)));
 			return defaultHandlers;
 		}
 		LOGGER.warn("Simple Feature Type could not be used for handling the indexed data");
 		return super.getDefaultTypeMatchingHandlers(reprojectedType);
 	}
 
-	public void setNamespace(final String namespaceURI) {
+	public void setNamespace(
+			final String namespaceURI ) {
 		final SimpleFeatureTypeBuilder builder = new SimpleFeatureTypeBuilder();
 		builder.init(reprojectedType);
 		builder.setNamespaceURI(namespaceURI);
@@ -223,12 +283,14 @@ public class WholeFeatureDataAdapter extends AbstractDataAdapter<SimpleFeature> 
 	}
 
 	@Override
-	public FieldReader<Object> getReader(final ByteArrayId fieldId) {
+	public FieldReader<Object> getReader(
+			final ByteArrayId fieldId ) {
 		return (FieldReader<Object>) new WholeFeatureReader();
 	}
 
 	@Override
-	public FieldWriter<SimpleFeature, Object> getWriter(final ByteArrayId fieldId) {
+	public FieldWriter<SimpleFeature, Object> getWriter(
+			final ByteArrayId fieldId ) {
 		return (FieldWriter<SimpleFeature, Object>) new WholeFeatureWriter();
 	}
 
@@ -245,12 +307,17 @@ public class WholeFeatureDataAdapter extends AbstractDataAdapter<SimpleFeature> 
 		byte[] attrBytes = new byte[0];
 
 		final SimpleFeatureUserDataConfigurationSet userDataConfiguration = new SimpleFeatureUserDataConfigurationSet();
-		userDataConfiguration.addConfigurations(new TimeDescriptorConfiguration(persistedType));
-		userDataConfiguration.addConfigurations(new SimpleFeatureStatsConfigurationCollection(persistedType));
+		userDataConfiguration.addConfigurations(new TimeDescriptorConfiguration(
+				persistedType));
+		userDataConfiguration.addConfigurations(new SimpleFeatureStatsConfigurationCollection(
+				persistedType));
 		try {
 			attrBytes = StringUtils.stringToBinary(userDataConfiguration.asJsonString());
-		} catch (final IOException e) {
-			LOGGER.error("Failure to encode simple feature user data configuration", e);
+		}
+		catch (final IOException e) {
+			LOGGER.error(
+					"Failure to encode simple feature user data configuration",
+					e);
 		}
 
 		final String namespace = reprojectedType.getName().getNamespaceURI();
@@ -258,14 +325,14 @@ public class WholeFeatureDataAdapter extends AbstractDataAdapter<SimpleFeature> 
 		byte[] namespaceBytes;
 		if ((namespace != null) && (namespace.length() > 0)) {
 			namespaceBytes = StringUtils.stringToBinary(namespace);
-		} else {
+		}
+		else {
 			namespaceBytes = new byte[0];
 		}
 		final byte[] encodedTypeBytes = StringUtils.stringToBinary(encodedType);
 		// 25 bytes is the 6 four byte length fields and one byte for the
 		// version
-		final ByteBuffer buf = ByteBuffer.allocate(encodedTypeBytes.length + typeNameBytes.length + namespaceBytes.length
-				+ fieldVisibilityAtributeNameBytes.length + visibilityManagementClassNameBytes.length + attrBytes.length + axisBytes.length + 25);
+		final ByteBuffer buf = ByteBuffer.allocate(encodedTypeBytes.length + typeNameBytes.length + namespaceBytes.length + fieldVisibilityAtributeNameBytes.length + visibilityManagementClassNameBytes.length + attrBytes.length + axisBytes.length + 25);
 		buf.put(VERSION);
 		buf.putInt(typeNameBytes.length);
 		buf.putInt(namespaceBytes.length);
@@ -285,7 +352,8 @@ public class WholeFeatureDataAdapter extends AbstractDataAdapter<SimpleFeature> 
 	}
 
 	@Override
-	protected Object defaultTypeDataFromBinary(final byte[] bytes) {
+	protected Object defaultTypeDataFromBinary(
+			final byte[] bytes ) {
 		// deserialize the feature type
 		final ByteBuffer buf = ByteBuffer.wrap(bytes);
 		// for now...do a gentle migration
@@ -314,38 +382,58 @@ public class WholeFeatureDataAdapter extends AbstractDataAdapter<SimpleFeature> 
 		visibilityAttributeName = StringUtils.stringFromBinary(fieldVisibilityAtributeNameBytes);
 		final String visibilityManagementClassName = StringUtils.stringFromBinary(visibilityManagementClassNameBytes);
 		try {
-			fieldVisibilityManagement = (VisibilityManagement<SimpleFeature>) Class.forName(visibilityManagementClassName).newInstance();
-		} catch (final Exception ex) {
-			LOGGER.error("Cannot instantiate " + visibilityManagementClassName, ex);
+			fieldVisibilityManagement = (VisibilityManagement<SimpleFeature>) Class.forName(
+					visibilityManagementClassName).newInstance();
+		}
+		catch (final Exception ex) {
+			LOGGER.error(
+					"Cannot instantiate " + visibilityManagementClassName,
+					ex);
 		}
 		// 25 bytes is the 6 four byte length fields and one byte for the
 		// version
-		final byte[] encodedTypeBytes = new byte[bytes.length - axisBytes.length - typeNameBytes.length - namespaceBytes.length
-				- fieldVisibilityAtributeNameBytes.length - visibilityManagementClassNameBytes.length - attrBytes.length - 25];
+		final byte[] encodedTypeBytes = new byte[bytes.length - axisBytes.length - typeNameBytes.length - namespaceBytes.length - fieldVisibilityAtributeNameBytes.length - visibilityManagementClassNameBytes.length - attrBytes.length - 25];
 		buf.get(encodedTypeBytes);
 
 		final String encodedType = StringUtils.stringFromBinary(encodedTypeBytes);
 		try {
-			final SimpleFeatureType myType = FeatureDataUtils.decodeType(namespace, typeName, encodedType, StringUtils.stringFromBinary(axisBytes));
+			final SimpleFeatureType myType = FeatureDataUtils.decodeType(
+					namespace,
+					typeName,
+					encodedType,
+					StringUtils.stringFromBinary(axisBytes));
 
 			final SimpleFeatureUserDataConfigurationSet userDataConfiguration = new SimpleFeatureUserDataConfigurationSet();
-			userDataConfiguration.addConfigurations(new TimeDescriptorConfiguration(myType));
-			userDataConfiguration.addConfigurations(new SimpleFeatureStatsConfigurationCollection(myType));
+			userDataConfiguration.addConfigurations(new TimeDescriptorConfiguration(
+					myType));
+			userDataConfiguration.addConfigurations(new SimpleFeatureStatsConfigurationCollection(
+					myType));
 			try {
-				userDataConfiguration.fromJsonString(StringUtils.stringFromBinary(attrBytes), myType);
+				userDataConfiguration.fromJsonString(
+						StringUtils.stringFromBinary(attrBytes),
+						myType);
 
-			} catch (final IOException e) {
-				LOGGER.error("Failure to decode simple feature user data configuration", e);
+			}
+			catch (final IOException e) {
+				LOGGER.error(
+						"Failure to decode simple feature user data configuration",
+						e);
 			}
 			setFeatureType(myType);
 			if (persistedType.getDescriptor(visibilityAttributeName) != null) {
-				persistedType.getDescriptor(visibilityAttributeName).getUserData().put("visibility", Boolean.TRUE);
+				persistedType.getDescriptor(
+						visibilityAttributeName).getUserData().put(
+						"visibility",
+						Boolean.TRUE);
 			}
 
 			// advertise the reprojected type externally
 			return reprojectedType;
-		} catch (final SchemaException e) {
-			LOGGER.error("Unable to deserialized feature type", e);
+		}
+		catch (final SchemaException e) {
+			LOGGER.error(
+					"Unable to deserialized feature type",
+					e);
 		}
 
 		return null;
@@ -353,17 +441,22 @@ public class WholeFeatureDataAdapter extends AbstractDataAdapter<SimpleFeature> 
 
 	@Override
 	public ByteArrayId getAdapterId() {
-		return new ByteArrayId(StringUtils.stringToBinary(reprojectedType.getTypeName()));
+		return new ByteArrayId(
+				StringUtils.stringToBinary(reprojectedType.getTypeName()));
 	}
 
 	@Override
-	public boolean isSupported(final SimpleFeature entry) {
-		return reprojectedType.getName().getURI().equals(entry.getType().getName().getURI());
+	public boolean isSupported(
+			final SimpleFeature entry ) {
+		return reprojectedType.getName().getURI().equals(
+				entry.getType().getName().getURI());
 	}
 
 	@Override
-	public ByteArrayId getDataId(final SimpleFeature entry) {
-		return new ByteArrayId(StringUtils.stringToBinary(entry.getID()));
+	public ByteArrayId getDataId(
+			final SimpleFeature entry ) {
+		return new ByteArrayId(
+				StringUtils.stringToBinary(entry.getID()));
 	}
 
 	@Override
@@ -376,8 +469,16 @@ public class WholeFeatureDataAdapter extends AbstractDataAdapter<SimpleFeature> 
 	}
 
 	@Override
-	public AdapterPersistenceEncoding encode(final SimpleFeature entry, final CommonIndexModel indexModel) {
-		return super.encode(FeatureDataUtils.defaultCRSTransform(entry, persistedType, reprojectedType, transform), indexModel);
+	public AdapterPersistenceEncoding encode(
+			final SimpleFeature entry,
+			final CommonIndexModel indexModel ) {
+		return super.encode(
+				FeatureDataUtils.defaultCRSTransform(
+						entry,
+						persistedType,
+						reprojectedType,
+						transform),
+				indexModel);
 	}
 
 	@Override
@@ -386,18 +487,24 @@ public class WholeFeatureDataAdapter extends AbstractDataAdapter<SimpleFeature> 
 	}
 
 	@Override
-	public DataStatistics<SimpleFeature> createDataStatistics(final ByteArrayId statisticsId) {
-		return statsManager.createDataStatistics(this, statisticsId);
+	public DataStatistics<SimpleFeature> createDataStatistics(
+			final ByteArrayId statisticsId ) {
+		return statsManager.createDataStatistics(
+				this,
+				statisticsId);
 	}
 
 	@Override
-	public DataStatisticsVisibilityHandler<SimpleFeature> getVisibilityHandler(final ByteArrayId statisticsId) {
+	public DataStatisticsVisibilityHandler<SimpleFeature> getVisibilityHandler(
+			final ByteArrayId statisticsId ) {
 		return statsManager.getVisibilityHandler(statisticsId);
 	}
 
 	public boolean hasTemporalConstraints() {
-		return typeMatchingFieldHandlers.keySet().contains(Time.class) || typeMatchingFieldHandlers.keySet().contains(FeatureTimestampHandler.class)
-				|| typeMatchingFieldHandlers.keySet().contains(FeatureTimeRangeHandler.class);
+		return typeMatchingFieldHandlers.keySet().contains(
+				Time.class) || typeMatchingFieldHandlers.keySet().contains(
+				FeatureTimestampHandler.class) || typeMatchingFieldHandlers.keySet().contains(
+				FeatureTimeRangeHandler.class);
 	}
 
 	public synchronized void resetTimeDescriptors() {
@@ -415,9 +522,13 @@ public class WholeFeatureDataAdapter extends AbstractDataAdapter<SimpleFeature> 
 	 * Determine if a time or range descriptor is set. If so, then user it,
 	 * otherwise infer.
 	 */
-	protected static final TimeDescriptors inferTimeAttributeDescriptor(final SimpleFeatureType persistType) {
-		final TimeDescriptorConfiguration config = new TimeDescriptorConfiguration(persistType);
-		final TimeDescriptors timeDescriptors = new TimeDescriptors(persistType, config);
+	protected static final TimeDescriptors inferTimeAttributeDescriptor(
+			final SimpleFeatureType persistType ) {
+		final TimeDescriptorConfiguration config = new TimeDescriptorConfiguration(
+				persistType);
+		final TimeDescriptors timeDescriptors = new TimeDescriptors(
+				persistType,
+				config);
 
 		// Up the meta-data so that it is clear and visible any inference that
 		// has occurred here. Also, this is critical to
@@ -428,7 +539,8 @@ public class WholeFeatureDataAdapter extends AbstractDataAdapter<SimpleFeature> 
 
 	private void determineVisibilityAttribute() {
 		for (final AttributeDescriptor attrDesc : persistedType.getAttributeDescriptors()) {
-			final Boolean isVisibility = (Boolean) attrDesc.getUserData().get("visibility");
+			final Boolean isVisibility = (Boolean) attrDesc.getUserData().get(
+					"visibility");
 			if ((isVisibility != null) && isVisibility.booleanValue()) {
 				visibilityAttributeName = attrDesc.getLocalName();
 			}
@@ -437,24 +549,31 @@ public class WholeFeatureDataAdapter extends AbstractDataAdapter<SimpleFeature> 
 
 	@Override
 	public HadoopWritableSerializer<SimpleFeature, FeatureWritable> createWritableSerializer() {
-		return new FeatureWritableSerializer(reprojectedType);
+		return new FeatureWritableSerializer(
+				reprojectedType);
 	}
 
-	private static class FeatureWritableSerializer implements HadoopWritableSerializer<SimpleFeature, FeatureWritable> {
+	private static class FeatureWritableSerializer implements
+			HadoopWritableSerializer<SimpleFeature, FeatureWritable>
+	{
 		private final FeatureWritable writable;
 
-		FeatureWritableSerializer(final SimpleFeatureType type) {
-			writable = new FeatureWritable(type);
+		FeatureWritableSerializer(
+				final SimpleFeatureType type ) {
+			writable = new FeatureWritable(
+					type);
 		}
 
 		@Override
-		public FeatureWritable toWritable(final SimpleFeature entry) {
+		public FeatureWritable toWritable(
+				final SimpleFeature entry ) {
 			writable.setFeature(entry);
 			return writable;
 		}
 
 		@Override
-		public SimpleFeature fromWritable(final FeatureWritable writable) {
+		public SimpleFeature fromWritable(
+				final FeatureWritable writable ) {
 			return writable.getFeature();
 		}
 

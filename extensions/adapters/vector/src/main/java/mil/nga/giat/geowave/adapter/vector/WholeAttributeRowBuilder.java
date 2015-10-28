@@ -19,30 +19,38 @@ import org.opengis.feature.simple.SimpleFeature;
  * SimpleFeatureBuilder.
  * 
  */
-public class WholeAttributeRowBuilder implements RowBuilder<SimpleFeature, Object> {
+public class WholeAttributeRowBuilder implements
+		RowBuilder<SimpleFeature, Object>
+{
 	private final HashMap<String, Object> idToValue = new HashMap<String, Object>();
-	
+
 	private final static Logger LOGGER = Logger.getLogger(WholeAttributeRowBuilder.class);
 
-	public WholeAttributeRowBuilder() {
-	}
+	public WholeAttributeRowBuilder() {}
 
 	@Override
-	public SimpleFeature buildRow(final ByteArrayId dataId) {
+	public SimpleFeature buildRow(
+			final ByteArrayId dataId ) {
 		TypeConverter tc = new TypeConverter();
 		SimpleFeature deserializedSimpleFeature = null;
 		try {
 			List<SimpleFeature> features = tc.deserializeSingleFeatureCollection((byte[]) idToValue.get(StringUtils.stringFromBinary(dataId.getBytes())));
 			deserializedSimpleFeature = features.get(0);
-		} catch (Exception e) {
-			LOGGER.error("Unable to deserialize SimpleFeature using dataId '" + dataId.toString() + "'", e);
+		}
+		catch (Exception e) {
+			LOGGER.error(
+					"Unable to deserialize SimpleFeature using dataId '" + dataId.toString() + "'",
+					e);
 		}
 
 		return deserializedSimpleFeature;
 	}
 
 	@Override
-	public void setField(final PersistentValue<Object> fieldValue) {
-		idToValue.put(StringUtils.stringFromBinary(fieldValue.getId().getBytes()), fieldValue.getValue());
+	public void setField(
+			final PersistentValue<Object> fieldValue ) {
+		idToValue.put(
+				StringUtils.stringFromBinary(fieldValue.getId().getBytes()),
+				fieldValue.getValue());
 	}
 }
