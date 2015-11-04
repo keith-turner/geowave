@@ -461,7 +461,7 @@ public class WholeFeatureDataAdapter extends
 
 	@Override
 	protected RowBuilder<SimpleFeature, Object> newBuilder() {
-		return new WholeAttributeRowBuilder();
+		return new WholeAttributeRowBuilder(getAdapterId());
 	}
 
 	public SimpleFeatureType getType() {

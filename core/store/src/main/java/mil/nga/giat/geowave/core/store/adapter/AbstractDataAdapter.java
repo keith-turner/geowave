@@ -189,7 +189,7 @@ abstract public class AbstractDataAdapter<T> implements
 		for (final PersistentValue<Object> fieldValue : data.getAdapterExtendedData().getValues()) {
 			builder.setField(fieldValue);
 		}
-		return builder.buildRow(data.getAdapterId());
+		return builder.buildRow(data.getDataId());
 	}
 
 	abstract protected RowBuilder<T, Object> newBuilder();

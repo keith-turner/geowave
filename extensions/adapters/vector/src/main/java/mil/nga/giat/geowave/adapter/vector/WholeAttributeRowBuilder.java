@@ -23,9 +23,13 @@ public class WholeAttributeRowBuilder implements
 {
 	private final HashMap<String, Object> idToValue = new HashMap<String, Object>();
 
+	private ByteArrayId id;
+
 	private final static Logger LOGGER = Logger.getLogger(WholeAttributeRowBuilder.class);
 
-	public WholeAttributeRowBuilder() {}
+	public WholeAttributeRowBuilder(ByteArrayId byteArrayId) {
+		this.id = byteArrayId;
+	}
 
 	@Override
 	public SimpleFeature buildRow(
@@ -33,7 +37,8 @@ public class WholeAttributeRowBuilder implements
 		TypeConverter tc = new TypeConverter();
 		SimpleFeature deserializedSimpleFeature = null;
 		try {
-			deserializedSimpleFeature = tc.deserializeAvroSimpleFeature((byte[]) idToValue.get(StringUtils.stringFromBinary(dataId.getBytes())));
+			System.out.println(dataId.toString());
+			deserializedSimpleFeature = tc.deserializeAvroSimpleFeature((byte[]) idToValue.get(StringUtils.stringFromBinary(id.getBytes())));
 		}
 		catch (Exception e) {
 			LOGGER.error(
@@ -48,7 +53,7 @@ public class WholeAttributeRowBuilder implements
 	public void setField(
 			final PersistentValue<Object> fieldValue ) {
 		idToValue.put(
-				StringUtils.stringFromBinary(fieldValue.getId().getBytes()),
+				StringUtils.stringFromBinary(id.getBytes()),
 				fieldValue.getValue());
 	}
 }
