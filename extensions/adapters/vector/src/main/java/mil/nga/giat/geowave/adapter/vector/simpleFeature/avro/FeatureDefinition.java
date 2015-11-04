@@ -3,7 +3,7 @@
  * 
  * DO NOT EDIT DIRECTLY
  */
-package mil.nga.giat.geowave.adapter.vector.types.generated;
+package mil.nga.giat.geowave.adapter.vector.simpleFeature.avro;
 
 @SuppressWarnings("all")
 @org.apache.avro.specific.AvroGenerated
@@ -11,7 +11,7 @@ public class FeatureDefinition extends
 		org.apache.avro.specific.SpecificRecordBase implements
 		org.apache.avro.specific.SpecificRecord
 {
-	public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse("{\"type\":\"record\",\"name\":\"FeatureDefinition\",\"namespace\":\"mil.nga.giat.geowave.adapter.vector.types.generated\",\"fields\":[{\"name\":\"FeatureTypeName\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}},{\"name\":\"AttributeNames\",\"type\":{\"type\":\"array\",\"items\":{\"type\":\"string\",\"avro.java.string\":\"String\"}}},{\"name\":\"AttributeTypes\",\"type\":{\"type\":\"array\",\"items\":{\"type\":\"string\",\"avro.java.string\":\"String\"}}},{\"name\":\"AttributeDefaultClassifications\",\"type\":{\"type\":\"array\",\"items\":{\"type\":\"string\",\"avro.java.string\":\"String\"}}}]}");
+	public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse("{\"type\":\"record\",\"name\":\"FeatureDefinition\",\"namespace\":\"mil.nga.giat.geowave.adapter.vector.simpleFeature.avro\",\"fields\":[{\"name\":\"FeatureTypeName\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}},{\"name\":\"AttributeNames\",\"type\":{\"type\":\"array\",\"items\":{\"type\":\"string\",\"avro.java.string\":\"String\"}}},{\"name\":\"AttributeTypes\",\"type\":{\"type\":\"array\",\"items\":{\"type\":\"string\",\"avro.java.string\":\"String\"}}},{\"name\":\"AttributeDefaultClassifications\",\"type\":{\"type\":\"array\",\"items\":{\"type\":\"string\",\"avro.java.string\":\"String\"}}}]}");
 
 	public static org.apache.avro.Schema getClassSchema() {
 		return SCHEMA$;
@@ -166,17 +166,17 @@ public class FeatureDefinition extends
 	}
 
 	/** Creates a new FeatureDefinition RecordBuilder */
-	public static mil.nga.giat.geowave.adapter.vector.types.generated.FeatureDefinition.Builder newBuilder() {
-		return new mil.nga.giat.geowave.adapter.vector.types.generated.FeatureDefinition.Builder();
+	public static mil.nga.giat.geowave.adapter.vector.simpleFeature.avro.FeatureDefinition.Builder newBuilder() {
+		return new mil.nga.giat.geowave.adapter.vector.simpleFeature.avro.FeatureDefinition.Builder();
 	}
 
 	/**
 	 * Creates a new FeatureDefinition RecordBuilder by copying an existing
 	 * Builder
 	 */
-	public static mil.nga.giat.geowave.adapter.vector.types.generated.FeatureDefinition.Builder newBuilder(
-			mil.nga.giat.geowave.adapter.vector.types.generated.FeatureDefinition.Builder other ) {
-		return new mil.nga.giat.geowave.adapter.vector.types.generated.FeatureDefinition.Builder(
+	public static mil.nga.giat.geowave.adapter.vector.simpleFeature.avro.FeatureDefinition.Builder newBuilder(
+			mil.nga.giat.geowave.adapter.vector.simpleFeature.avro.FeatureDefinition.Builder other ) {
+		return new mil.nga.giat.geowave.adapter.vector.simpleFeature.avro.FeatureDefinition.Builder(
 				other);
 	}
 
@@ -184,9 +184,9 @@ public class FeatureDefinition extends
 	 * Creates a new FeatureDefinition RecordBuilder by copying an existing
 	 * FeatureDefinition instance
 	 */
-	public static mil.nga.giat.geowave.adapter.vector.types.generated.FeatureDefinition.Builder newBuilder(
-			mil.nga.giat.geowave.adapter.vector.types.generated.FeatureDefinition other ) {
-		return new mil.nga.giat.geowave.adapter.vector.types.generated.FeatureDefinition.Builder(
+	public static mil.nga.giat.geowave.adapter.vector.simpleFeature.avro.FeatureDefinition.Builder newBuilder(
+			mil.nga.giat.geowave.adapter.vector.simpleFeature.avro.FeatureDefinition other ) {
+		return new mil.nga.giat.geowave.adapter.vector.simpleFeature.avro.FeatureDefinition.Builder(
 				other);
 	}
 
@@ -206,12 +206,12 @@ public class FeatureDefinition extends
 		/** Creates a new Builder */
 		private Builder() {
 			super(
-					mil.nga.giat.geowave.adapter.vector.types.generated.FeatureDefinition.SCHEMA$);
+					mil.nga.giat.geowave.adapter.vector.simpleFeature.avro.FeatureDefinition.SCHEMA$);
 		}
 
 		/** Creates a Builder by copying an existing Builder */
 		private Builder(
-				mil.nga.giat.geowave.adapter.vector.types.generated.FeatureDefinition.Builder other ) {
+				mil.nga.giat.geowave.adapter.vector.simpleFeature.avro.FeatureDefinition.Builder other ) {
 			super(
 					other);
 			if (isValidValue(
@@ -250,9 +250,9 @@ public class FeatureDefinition extends
 
 		/** Creates a Builder by copying an existing FeatureDefinition instance */
 		private Builder(
-				mil.nga.giat.geowave.adapter.vector.types.generated.FeatureDefinition other ) {
+				mil.nga.giat.geowave.adapter.vector.simpleFeature.avro.FeatureDefinition other ) {
 			super(
-					mil.nga.giat.geowave.adapter.vector.types.generated.FeatureDefinition.SCHEMA$);
+					mil.nga.giat.geowave.adapter.vector.simpleFeature.avro.FeatureDefinition.SCHEMA$);
 			if (isValidValue(
 					fields()[0],
 					other.FeatureTypeName)) {
@@ -293,7 +293,7 @@ public class FeatureDefinition extends
 		}
 
 		/** Sets the value of the 'FeatureTypeName' field */
-		public mil.nga.giat.geowave.adapter.vector.types.generated.FeatureDefinition.Builder setFeatureTypeName(
+		public mil.nga.giat.geowave.adapter.vector.simpleFeature.avro.FeatureDefinition.Builder setFeatureTypeName(
 				java.lang.String value ) {
 			validate(
 					fields()[0],
@@ -309,7 +309,7 @@ public class FeatureDefinition extends
 		}
 
 		/** Clears the value of the 'FeatureTypeName' field */
-		public mil.nga.giat.geowave.adapter.vector.types.generated.FeatureDefinition.Builder clearFeatureTypeName() {
+		public mil.nga.giat.geowave.adapter.vector.simpleFeature.avro.FeatureDefinition.Builder clearFeatureTypeName() {
 			FeatureTypeName = null;
 			fieldSetFlags()[0] = false;
 			return this;
@@ -321,7 +321,7 @@ public class FeatureDefinition extends
 		}
 
 		/** Sets the value of the 'AttributeNames' field */
-		public mil.nga.giat.geowave.adapter.vector.types.generated.FeatureDefinition.Builder setAttributeNames(
+		public mil.nga.giat.geowave.adapter.vector.simpleFeature.avro.FeatureDefinition.Builder setAttributeNames(
 				java.util.List<java.lang.String> value ) {
 			validate(
 					fields()[1],
@@ -337,7 +337,7 @@ public class FeatureDefinition extends
 		}
 
 		/** Clears the value of the 'AttributeNames' field */
-		public mil.nga.giat.geowave.adapter.vector.types.generated.FeatureDefinition.Builder clearAttributeNames() {
+		public mil.nga.giat.geowave.adapter.vector.simpleFeature.avro.FeatureDefinition.Builder clearAttributeNames() {
 			AttributeNames = null;
 			fieldSetFlags()[1] = false;
 			return this;
@@ -349,7 +349,7 @@ public class FeatureDefinition extends
 		}
 
 		/** Sets the value of the 'AttributeTypes' field */
-		public mil.nga.giat.geowave.adapter.vector.types.generated.FeatureDefinition.Builder setAttributeTypes(
+		public mil.nga.giat.geowave.adapter.vector.simpleFeature.avro.FeatureDefinition.Builder setAttributeTypes(
 				java.util.List<java.lang.String> value ) {
 			validate(
 					fields()[2],
@@ -365,7 +365,7 @@ public class FeatureDefinition extends
 		}
 
 		/** Clears the value of the 'AttributeTypes' field */
-		public mil.nga.giat.geowave.adapter.vector.types.generated.FeatureDefinition.Builder clearAttributeTypes() {
+		public mil.nga.giat.geowave.adapter.vector.simpleFeature.avro.FeatureDefinition.Builder clearAttributeTypes() {
 			AttributeTypes = null;
 			fieldSetFlags()[2] = false;
 			return this;
@@ -377,7 +377,7 @@ public class FeatureDefinition extends
 		}
 
 		/** Sets the value of the 'AttributeDefaultClassifications' field */
-		public mil.nga.giat.geowave.adapter.vector.types.generated.FeatureDefinition.Builder setAttributeDefaultClassifications(
+		public mil.nga.giat.geowave.adapter.vector.simpleFeature.avro.FeatureDefinition.Builder setAttributeDefaultClassifications(
 				java.util.List<java.lang.String> value ) {
 			validate(
 					fields()[3],
@@ -396,7 +396,7 @@ public class FeatureDefinition extends
 		}
 
 		/** Clears the value of the 'AttributeDefaultClassifications' field */
-		public mil.nga.giat.geowave.adapter.vector.types.generated.FeatureDefinition.Builder clearAttributeDefaultClassifications() {
+		public mil.nga.giat.geowave.adapter.vector.simpleFeature.avro.FeatureDefinition.Builder clearAttributeDefaultClassifications() {
 			AttributeDefaultClassifications = null;
 			fieldSetFlags()[3] = false;
 			return this;

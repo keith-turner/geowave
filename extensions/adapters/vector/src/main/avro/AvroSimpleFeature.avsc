@@ -1,0 +1,76 @@
+[
+    {
+        "name" : "AttributeValue",
+        "namespace" : "mil.nga.giat.geowave.adapter.vector.simpleFeature.avro",
+        "type" : "record",
+        "fields" : [
+            {
+            	"name" : "fid",
+                "type" : "string"
+            },
+            {
+             	 "name" : "values",
+                 "type" : {
+                     "type" : "array",
+                     "items" : "bytes"
+                 }
+            },
+            {
+            	"name" : "classifications",
+                "type" : [
+                    "null",{
+                        "type" : "array",
+                        "items" : "string"
+                    }
+                ]
+            }
+         ]
+    },
+    {
+        "name" : "FeatureDefinition",
+        "namespace" : "mil.nga.giat.geowave.adapter.vector.simpleFeature.avro",
+        "type" : "record",
+        "fields" : [
+             {
+             	"name" : "FeatureTypeName",
+             	"type" : "string"
+             },
+             {
+             	 "name" : "AttributeNames",
+                 "type" : {
+                     "type" : "array",
+                     "items" : "string"
+                 }
+             },
+             {
+             	 "name" : "AttributeTypes",
+                 "type" : {
+                     "type" : "array",
+                     "items" : "string"
+             	 }
+             },
+             {
+             	 "name" : "AttributeDefaultClassifications",
+                 "type" : {
+                     "type" : "array",
+                     "items" : "string"
+             	 }
+             }
+         ]
+    },
+    {
+        "name" : "AvroSimpleFeature",
+        "namespace" : "mil.nga.giat.geowave.adapter.vector.simpleFeature.avro",
+        "type" : "record",
+        "fields" : [
+            {
+            	"name" : "FeatureType",
+            	"type" : "FeatureDefinition"
+           	},
+            {
+            	"name" : "Value",
+            	"type" : "AttributeValue"
+            }
+        ]
+    }
+]

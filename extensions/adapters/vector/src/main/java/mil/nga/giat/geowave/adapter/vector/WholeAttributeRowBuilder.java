@@ -1,9 +1,8 @@
 package mil.nga.giat.geowave.adapter.vector;
 
 import java.util.HashMap;
-import java.util.List;
 
-import mil.nga.giat.geowave.adapter.vector.types.generated.TypeConverter;
+import mil.nga.giat.geowave.adapter.vector.simpleFeature.avro.TypeConverter;
 import mil.nga.giat.geowave.core.index.ByteArrayId;
 import mil.nga.giat.geowave.core.index.StringUtils;
 import mil.nga.giat.geowave.core.store.adapter.NativeFieldHandler.RowBuilder;
@@ -34,8 +33,7 @@ public class WholeAttributeRowBuilder implements
 		TypeConverter tc = new TypeConverter();
 		SimpleFeature deserializedSimpleFeature = null;
 		try {
-			List<SimpleFeature> features = tc.deserializeSingleFeatureCollection((byte[]) idToValue.get(StringUtils.stringFromBinary(dataId.getBytes())));
-			deserializedSimpleFeature = features.get(0);
+			deserializedSimpleFeature = tc.deserializeAvroSimpleFeature((byte[]) idToValue.get(StringUtils.stringFromBinary(dataId.getBytes())));
 		}
 		catch (Exception e) {
 			LOGGER.error(

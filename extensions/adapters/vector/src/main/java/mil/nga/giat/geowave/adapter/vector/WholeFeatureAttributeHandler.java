@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import mil.nga.giat.geowave.adapter.vector.types.generated.TypeConverter;
+import mil.nga.giat.geowave.adapter.vector.simpleFeature.avro.TypeConverter;
 import mil.nga.giat.geowave.core.index.ByteArrayId;
 import mil.nga.giat.geowave.core.index.StringUtils;
 import mil.nga.giat.geowave.core.store.adapter.NativeFieldHandler;
@@ -48,9 +48,8 @@ public class WholeFeatureAttributeHandler implements
 		TypeConverter tc = new TypeConverter();
 		byte[] serializedAttributes = null;
 		try {
-			serializedAttributes = tc.serializeSingleFeatureCollection(
-					new ArrayList<SimpleFeature>(
-							Arrays.asList(row)),
+			serializedAttributes = tc.serializeAvroSimpleFeature(
+					row,
 					null,
 					null,
 					"");

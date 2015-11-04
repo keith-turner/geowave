@@ -17,9 +17,11 @@ import mil.nga.giat.geowave.core.geotime.IndexType;
 import mil.nga.giat.geowave.core.geotime.store.dimension.GeometryWrapper;
 import mil.nga.giat.geowave.core.store.adapter.AdapterPersistenceEncoding;
 import mil.nga.giat.geowave.core.store.adapter.IndexFieldHandler;
+import mil.nga.giat.geowave.core.store.adapter.IndexedAdapterPersistenceEncoding;
 import mil.nga.giat.geowave.core.store.data.PersistentValue;
 import mil.nga.giat.geowave.core.store.data.visibility.GlobalVisibilityHandler;
 import mil.nga.giat.geowave.core.store.index.CommonIndexValue;
+import mil.nga.giat.geowave.core.store.index.Index;
 
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
@@ -41,7 +43,7 @@ import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.geom.PrecisionModel;
 
-public class FeatureDataAdapterTest
+public class WholeFeatureDataAdapterTest
 {
 
 	private SimpleFeatureType schema;
@@ -88,7 +90,6 @@ public class FeatureDataAdapterTest
 							time2)
 
 				});
-
 	}
 
 	@Test
@@ -97,7 +98,7 @@ public class FeatureDataAdapterTest
 		final SimpleFeatureType schema = DataUtilities.createType(
 				"sp.geostuff",
 				"geometry:Geometry:srid=3005,pop:java.lang.Long");
-		final FeatureDataAdapter dataAdapter = new FeatureDataAdapter(
+		final WholeFeatureDataAdapter dataAdapter = new WholeFeatureDataAdapter(
 				schema,
 				new GlobalVisibilityHandler<SimpleFeature, Object>(
 						"default"));
@@ -117,23 +118,67 @@ public class FeatureDataAdapterTest
 							"pop",
 							Long.valueOf(100))
 				});
-		AdapterPersistenceEncoding persistenceEncoding = dataAdapter.encode(
-				newFeature,
-				IndexType.SPATIAL_VECTOR.getDefaultIndexModel());
 
-		GeometryWrapper wrapper = null;
-		for (PersistentValue pv : persistenceEncoding.getCommonData().getValues()) {
-			if (pv.getValue() instanceof GeometryWrapper) {
-				wrapper = (GeometryWrapper) pv.getValue();
+		try {
+
+			AdapterPersistenceEncoding persistenceEncoding = dataAdapter.encode(
+					newFeature,
+					IndexType.SPATIAL_VECTOR.getDefaultIndexModel());
+
+			final IndexedAdapterPersistenceEncoding encoding = new IndexedAdapterPersistenceEncoding(
+					dataAdapter.getAdapterId(),
+					persistenceEncoding.getDataId(),
+					null,
+					1,
+					persistenceEncoding.getCommonData(),
+					persistenceEncoding.getAdapterExtendedData());
+
+			final SimpleFeature feature = dataAdapter.decode(
+					encoding,
+					new Index(
+							null, // because we know the feature data adapter
+									// doesn't use the numeric index strategy
+									// and only the common index model to decode
+									// the simple feature, we pass along a null
+									// strategy to eliminate the necessity to
+									// send a serialization of the strategy in
+									// the options of this iterator
+							IndexType.SPATIAL_VECTOR.getDefaultIndexModel()));
+
+			assertTrue(newFeature.getID().equals(
+					feature.getID()));
+			for (int i = 0; i < newFeature.getAttributes().size(); i++) {
+				System.out.println(newFeature.getAttribute(i) + " == " + feature.getAttribute(i));
+				// assertTrue(newFeature.getAttribute(i).equals(feature.getAttribute(i)));
 			}
-		}
-		assertNotNull(wrapper);
 
-		assertEquals(
-				new Coordinate(
-						-138.0,
-						44.0),
-				wrapper.getGeometry().getCentroid().getCoordinate());
+			// try {
+			// dataAdapter.createWritableSerializer().toWritable(
+			// newFeature).write(
+			// null);
+			// }
+			// catch (IOException e) {
+			// // TODO Auto-generated catch block
+			// e.printStackTrace();
+			// }
+
+			GeometryWrapper wrapper = null;
+			for (PersistentValue pv : persistenceEncoding.getCommonData().getValues()) {
+				if (pv.getValue() instanceof GeometryWrapper) {
+					wrapper = (GeometryWrapper) pv.getValue();
+				}
+			}
+			assertNotNull(wrapper);
+
+			assertEquals(
+					new Coordinate(
+							-138.0,
+							44.0),
+					wrapper.getGeometry().getCentroid().getCoordinate());
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	@Test

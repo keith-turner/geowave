@@ -3,15 +3,15 @@
  * 
  * DO NOT EDIT DIRECTLY
  */
-package mil.nga.giat.geowave.adapter.vector.types.generated;
+package mil.nga.giat.geowave.adapter.vector.simpleFeature.avro;
 
 @SuppressWarnings("all")
 @org.apache.avro.specific.AvroGenerated
-public class AttributeValues extends
+public class AttributeValue extends
 		org.apache.avro.specific.SpecificRecordBase implements
 		org.apache.avro.specific.SpecificRecord
 {
-	public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse("{\"type\":\"record\",\"name\":\"AttributeValues\",\"namespace\":\"mil.nga.giat.geowave.adapter.vector.types.generated\",\"fields\":[{\"name\":\"fid\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}},{\"name\":\"values\",\"type\":{\"type\":\"array\",\"items\":\"bytes\"}},{\"name\":\"classifications\",\"type\":[\"null\",{\"type\":\"array\",\"items\":{\"type\":\"string\",\"avro.java.string\":\"String\"}}]}]}");
+	public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse("{\"type\":\"record\",\"name\":\"AttributeValue\",\"namespace\":\"mil.nga.giat.geowave.adapter.vector.simpleFeature.avro\",\"fields\":[{\"name\":\"fid\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}},{\"name\":\"values\",\"type\":{\"type\":\"array\",\"items\":\"bytes\"}},{\"name\":\"classifications\",\"type\":[\"null\",{\"type\":\"array\",\"items\":{\"type\":\"string\",\"avro.java.string\":\"String\"}}]}]}");
 
 	public static org.apache.avro.Schema getClassSchema() {
 		return SCHEMA$;
@@ -29,12 +29,12 @@ public class AttributeValues extends
 	 * default values from the schema. If that is desired then one should use
 	 * <code>newBuilder()</code>.
 	 */
-	public AttributeValues() {}
+	public AttributeValue() {}
 
 	/**
 	 * All-args constructor.
 	 */
-	public AttributeValues(
+	public AttributeValue(
 			java.lang.String fid,
 			java.util.List<java.nio.ByteBuffer> values,
 			java.util.List<java.lang.String> classifications ) {
@@ -138,37 +138,36 @@ public class AttributeValues extends
 		this.classifications = value;
 	}
 
-	/** Creates a new AttributeValues RecordBuilder */
-	public static mil.nga.giat.geowave.adapter.vector.types.generated.AttributeValues.Builder newBuilder() {
-		return new mil.nga.giat.geowave.adapter.vector.types.generated.AttributeValues.Builder();
+	/** Creates a new AttributeValue RecordBuilder */
+	public static mil.nga.giat.geowave.adapter.vector.simpleFeature.avro.AttributeValue.Builder newBuilder() {
+		return new mil.nga.giat.geowave.adapter.vector.simpleFeature.avro.AttributeValue.Builder();
 	}
 
 	/**
-	 * Creates a new AttributeValues RecordBuilder by copying an existing
-	 * Builder
+	 * Creates a new AttributeValue RecordBuilder by copying an existing Builder
 	 */
-	public static mil.nga.giat.geowave.adapter.vector.types.generated.AttributeValues.Builder newBuilder(
-			mil.nga.giat.geowave.adapter.vector.types.generated.AttributeValues.Builder other ) {
-		return new mil.nga.giat.geowave.adapter.vector.types.generated.AttributeValues.Builder(
+	public static mil.nga.giat.geowave.adapter.vector.simpleFeature.avro.AttributeValue.Builder newBuilder(
+			mil.nga.giat.geowave.adapter.vector.simpleFeature.avro.AttributeValue.Builder other ) {
+		return new mil.nga.giat.geowave.adapter.vector.simpleFeature.avro.AttributeValue.Builder(
 				other);
 	}
 
 	/**
-	 * Creates a new AttributeValues RecordBuilder by copying an existing
-	 * AttributeValues instance
+	 * Creates a new AttributeValue RecordBuilder by copying an existing
+	 * AttributeValue instance
 	 */
-	public static mil.nga.giat.geowave.adapter.vector.types.generated.AttributeValues.Builder newBuilder(
-			mil.nga.giat.geowave.adapter.vector.types.generated.AttributeValues other ) {
-		return new mil.nga.giat.geowave.adapter.vector.types.generated.AttributeValues.Builder(
+	public static mil.nga.giat.geowave.adapter.vector.simpleFeature.avro.AttributeValue.Builder newBuilder(
+			mil.nga.giat.geowave.adapter.vector.simpleFeature.avro.AttributeValue other ) {
+		return new mil.nga.giat.geowave.adapter.vector.simpleFeature.avro.AttributeValue.Builder(
 				other);
 	}
 
 	/**
-	 * RecordBuilder for AttributeValues instances.
+	 * RecordBuilder for AttributeValue instances.
 	 */
 	public static class Builder extends
-			org.apache.avro.specific.SpecificRecordBuilderBase<AttributeValues> implements
-			org.apache.avro.data.RecordBuilder<AttributeValues>
+			org.apache.avro.specific.SpecificRecordBuilderBase<AttributeValue> implements
+			org.apache.avro.data.RecordBuilder<AttributeValue>
 	{
 
 		private java.lang.String fid;
@@ -178,12 +177,12 @@ public class AttributeValues extends
 		/** Creates a new Builder */
 		private Builder() {
 			super(
-					mil.nga.giat.geowave.adapter.vector.types.generated.AttributeValues.SCHEMA$);
+					mil.nga.giat.geowave.adapter.vector.simpleFeature.avro.AttributeValue.SCHEMA$);
 		}
 
 		/** Creates a Builder by copying an existing Builder */
 		private Builder(
-				mil.nga.giat.geowave.adapter.vector.types.generated.AttributeValues.Builder other ) {
+				mil.nga.giat.geowave.adapter.vector.simpleFeature.avro.AttributeValue.Builder other ) {
 			super(
 					other);
 			if (isValidValue(
@@ -212,11 +211,11 @@ public class AttributeValues extends
 			}
 		}
 
-		/** Creates a Builder by copying an existing AttributeValues instance */
+		/** Creates a Builder by copying an existing AttributeValue instance */
 		private Builder(
-				mil.nga.giat.geowave.adapter.vector.types.generated.AttributeValues other ) {
+				mil.nga.giat.geowave.adapter.vector.simpleFeature.avro.AttributeValue other ) {
 			super(
-					mil.nga.giat.geowave.adapter.vector.types.generated.AttributeValues.SCHEMA$);
+					mil.nga.giat.geowave.adapter.vector.simpleFeature.avro.AttributeValue.SCHEMA$);
 			if (isValidValue(
 					fields()[0],
 					other.fid)) {
@@ -249,7 +248,7 @@ public class AttributeValues extends
 		}
 
 		/** Sets the value of the 'fid' field */
-		public mil.nga.giat.geowave.adapter.vector.types.generated.AttributeValues.Builder setFid(
+		public mil.nga.giat.geowave.adapter.vector.simpleFeature.avro.AttributeValue.Builder setFid(
 				java.lang.String value ) {
 			validate(
 					fields()[0],
@@ -265,7 +264,7 @@ public class AttributeValues extends
 		}
 
 		/** Clears the value of the 'fid' field */
-		public mil.nga.giat.geowave.adapter.vector.types.generated.AttributeValues.Builder clearFid() {
+		public mil.nga.giat.geowave.adapter.vector.simpleFeature.avro.AttributeValue.Builder clearFid() {
 			fid = null;
 			fieldSetFlags()[0] = false;
 			return this;
@@ -277,7 +276,7 @@ public class AttributeValues extends
 		}
 
 		/** Sets the value of the 'values' field */
-		public mil.nga.giat.geowave.adapter.vector.types.generated.AttributeValues.Builder setValues(
+		public mil.nga.giat.geowave.adapter.vector.simpleFeature.avro.AttributeValue.Builder setValues(
 				java.util.List<java.nio.ByteBuffer> value ) {
 			validate(
 					fields()[1],
@@ -293,7 +292,7 @@ public class AttributeValues extends
 		}
 
 		/** Clears the value of the 'values' field */
-		public mil.nga.giat.geowave.adapter.vector.types.generated.AttributeValues.Builder clearValues() {
+		public mil.nga.giat.geowave.adapter.vector.simpleFeature.avro.AttributeValue.Builder clearValues() {
 			values = null;
 			fieldSetFlags()[1] = false;
 			return this;
@@ -305,7 +304,7 @@ public class AttributeValues extends
 		}
 
 		/** Sets the value of the 'classifications' field */
-		public mil.nga.giat.geowave.adapter.vector.types.generated.AttributeValues.Builder setClassifications(
+		public mil.nga.giat.geowave.adapter.vector.simpleFeature.avro.AttributeValue.Builder setClassifications(
 				java.util.List<java.lang.String> value ) {
 			validate(
 					fields()[2],
@@ -321,16 +320,16 @@ public class AttributeValues extends
 		}
 
 		/** Clears the value of the 'classifications' field */
-		public mil.nga.giat.geowave.adapter.vector.types.generated.AttributeValues.Builder clearClassifications() {
+		public mil.nga.giat.geowave.adapter.vector.simpleFeature.avro.AttributeValue.Builder clearClassifications() {
 			classifications = null;
 			fieldSetFlags()[2] = false;
 			return this;
 		}
 
 		@Override
-		public AttributeValues build() {
+		public AttributeValue build() {
 			try {
-				AttributeValues record = new AttributeValues();
+				AttributeValue record = new AttributeValue();
 				record.fid = fieldSetFlags()[0] ? this.fid : (java.lang.String) defaultValue(fields()[0]);
 				record.values = fieldSetFlags()[1] ? this.values : (java.util.List<java.nio.ByteBuffer>) defaultValue(fields()[1]);
 				record.classifications = fieldSetFlags()[2] ? this.classifications : (java.util.List<java.lang.String>) defaultValue(fields()[2]);
