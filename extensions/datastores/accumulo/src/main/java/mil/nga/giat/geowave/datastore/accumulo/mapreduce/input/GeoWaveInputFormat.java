@@ -75,7 +75,7 @@ public class GeoWaveInputFormat<T> extends
 
 	/**
 	 * Configures a {@link AccumuloOperations} for this job.
-	 *
+	 * 
 	 * @param config
 	 *            the Hadoop configuration instance
 	 * @param zooKeepers
@@ -108,7 +108,7 @@ public class GeoWaveInputFormat<T> extends
 
 	/**
 	 * Configures a {@link AccumuloOperations} for this job.
-	 *
+	 * 
 	 * @param job
 	 *            the Hadoop job instance to be configured
 	 * @param zooKeepers
@@ -140,7 +140,7 @@ public class GeoWaveInputFormat<T> extends
 
 	/**
 	 * Add an adapter specific to the input format
-	 *
+	 * 
 	 * @param job
 	 * @param adapter
 	 */
@@ -529,8 +529,13 @@ public class GeoWaveInputFormat<T> extends
 			final Locations locations;
 			try {
 				final Instance instance = getInstance(context);
-			 	final Connector conn = instance.getConnector(getUserName(context), new PasswordToken(getPassword(context)));
-			 	locations = conn.tableOperations().locate(tableName, ranges);
+				final Connector conn = instance.getConnector(
+						getUserName(context),
+						new PasswordToken(
+								getPassword(context)));
+				locations = conn.tableOperations().locate(
+						tableName,
+						ranges);
 
 			}
 			catch (final Exception e) {
@@ -541,58 +546,58 @@ public class GeoWaveInputFormat<T> extends
 			final HashMap<String, String> hostNameCache = new HashMap<String, String>();
 
 			for (Entry<TabletId, List<Range>> entry : locations.groupByTablet().entrySet()) {
-			  final TabletId tabletId = entry.getKey();
-			  final String tabletServer = locations.getTabletLocation(tabletId);
-			  final String ipAddress = tabletServer.split(
-                  ":",
-                  2)[0];
+				final TabletId tabletId = entry.getKey();
+				final String tabletServer = locations.getTabletLocation(tabletId);
+				final String ipAddress = tabletServer.split(
+						":",
+						2)[0];
 
-			  String location = hostNameCache.get(ipAddress);
-              if (location == null) {
-                  final InetAddress inetAddress = InetAddress.getByName(ipAddress);
-                  location = inetAddress.getHostName();
-                  hostNameCache.put(
-                          ipAddress,
-                          location);
-              }
+				String location = hostNameCache.get(ipAddress);
+				if (location == null) {
+					final InetAddress inetAddress = InetAddress.getByName(ipAddress);
+					location = inetAddress.getHostName();
+					hostNameCache.put(
+							ipAddress,
+							location);
+				}
 
-              final Range tabletRange = tabletId.toRange();
-              final Map<Index, List<RangeLocationPair>> splitInfo = new HashMap<Index, List<RangeLocationPair>>();
-              final List<RangeLocationPair> rangeList = new ArrayList<RangeLocationPair>();
+				final Range tabletRange = tabletId.toRange();
+				final Map<Index, List<RangeLocationPair>> splitInfo = new HashMap<Index, List<RangeLocationPair>>();
+				final List<RangeLocationPair> rangeList = new ArrayList<RangeLocationPair>();
 
-              for(Range range : entry.getValue()) {
-                    final Range clippedRange = tabletRange.clip(range);
-                    final double cardinality = getCardinality(
-                            getHistStats(
-                                    index,
-                                    adapterStore,
-                                    statsStore,
-                                    statsCache,
-                                    context),
-                            clippedRange);
-                    if (!(fullrange.beforeStartKey(clippedRange.getEndKey()) || fullrange.afterEndKey(clippedRange.getStartKey()))) {
-                        rangeList.add(new RangeLocationPair(
-                                clippedRange,
-                                location,
-                                cardinality < 1 ? 1.0 : cardinality));
-                    }
-                    else {
-                        LOGGER.info("Query split outside of range");
-                    }
-                    if (LOGGER.isTraceEnabled()) {
-                        LOGGER.warn("Clipped range: " + rangeList.get(
-                                rangeList.size() - 1).getRange());
-                    }
-                }
-                if (!rangeList.isEmpty()) {
-                    splitInfo.put(
-                            index,
-                            rangeList);
-                    splits.add(new IntermediateSplitInfo(
-                            splitInfo));
-                }
+				for (Range range : entry.getValue()) {
+					final Range clippedRange = tabletRange.clip(range);
+					final double cardinality = getCardinality(
+							getHistStats(
+									index,
+									adapterStore,
+									statsStore,
+									statsCache,
+									context),
+							clippedRange);
+					if (!(fullrange.beforeStartKey(clippedRange.getEndKey()) || fullrange.afterEndKey(clippedRange.getStartKey()))) {
+						rangeList.add(new RangeLocationPair(
+								clippedRange,
+								location,
+								cardinality < 1 ? 1.0 : cardinality));
+					}
+					else {
+						LOGGER.info("Query split outside of range");
+					}
+					if (LOGGER.isTraceEnabled()) {
+						LOGGER.warn("Clipped range: " + rangeList.get(
+								rangeList.size() - 1).getRange());
+					}
+				}
+				if (!rangeList.isEmpty()) {
+					splitInfo.put(
+							index,
+							rangeList);
+					splits.add(new IntermediateSplitInfo(
+							splitInfo));
+				}
 
-            }
+			}
 		}
 		return splits;
 	}
@@ -747,9 +752,9 @@ public class GeoWaveInputFormat<T> extends
 
 		/**
 		 * Side effect: Break up this split.
-		 *
+		 * 
 		 * Split the ranges into two
-		 *
+		 * 
 		 * @return the new split.
 		 */
 		private synchronized IntermediateSplitInfo split(
@@ -1049,7 +1054,7 @@ public class GeoWaveInputFormat<T> extends
 
 	/**
 	 * Sets the log level for this job.
-	 *
+	 * 
 	 * @param job
 	 *            the Hadoop job instance to be configured
 	 * @param level
@@ -1067,7 +1072,7 @@ public class GeoWaveInputFormat<T> extends
 
 	/**
 	 * Gets the log level from this configuration.
-	 *
+	 * 
 	 * @param context
 	 *            the Hadoop context for the configured job
 	 * @return the log level
@@ -1084,7 +1089,7 @@ public class GeoWaveInputFormat<T> extends
 	/**
 	 * Check whether a configuration is fully configured to be used with an
 	 * Accumulo {@link org.apache.hadoop.mapreduce.InputFormat}.
-	 *
+	 * 
 	 * @param context
 	 *            the Hadoop context for the configured job
 	 * @throws IOException
@@ -1148,7 +1153,7 @@ public class GeoWaveInputFormat<T> extends
 
 	/**
 	 * First look for input-specific adapters
-	 *
+	 * 
 	 * @param context
 	 * @param adapterStore
 	 * @return
