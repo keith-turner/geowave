@@ -12,7 +12,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Random;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -33,26 +32,18 @@ import mil.nga.giat.geowave.datastore.accumulo.mapreduce.JobContextIndexStore;
 import mil.nga.giat.geowave.datastore.accumulo.mapreduce.input.GeoWaveInputConfigurator.InputConfig;
 import mil.nga.giat.geowave.datastore.accumulo.metadata.AccumuloDataStatisticsStore;
 import mil.nga.giat.geowave.datastore.accumulo.util.AccumuloUtils;
-
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
+import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.Instance;
-import org.apache.accumulo.core.client.TableDeletedException;
-import org.apache.accumulo.core.client.TableNotFoundException;
-import org.apache.accumulo.core.client.TableOfflineException;
-import org.apache.accumulo.core.client.impl.Tables;
-import org.apache.accumulo.core.client.impl.TabletLocator;
+import org.apache.accumulo.core.client.admin.Locations;
 import org.apache.accumulo.core.client.mapreduce.lib.util.ConfiguratorBase;
-import org.apache.accumulo.core.client.mock.MockInstance;
 import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 import org.apache.accumulo.core.data.ArrayByteSequence;
 import org.apache.accumulo.core.data.ByteSequence;
 import org.apache.accumulo.core.data.Key;
-import org.apache.accumulo.core.data.KeyExtent;
 import org.apache.accumulo.core.data.Range;
-import org.apache.accumulo.core.master.state.tables.TableState;
-import org.apache.accumulo.core.security.Credentials;
-import org.apache.accumulo.core.util.UtilWaitThread;
+import org.apache.accumulo.core.data.TabletId;
 import org.apache.commons.collections.IteratorUtils;
 import org.apache.commons.collections.Transformer;
 import org.apache.commons.lang3.tuple.Pair;
@@ -84,7 +75,7 @@ public class GeoWaveInputFormat<T> extends
 
 	/**
 	 * Configures a {@link AccumuloOperations} for this job.
-	 * 
+	 *
 	 * @param config
 	 *            the Hadoop configuration instance
 	 * @param zooKeepers
@@ -117,7 +108,7 @@ public class GeoWaveInputFormat<T> extends
 
 	/**
 	 * Configures a {@link AccumuloOperations} for this job.
-	 * 
+	 *
 	 * @param job
 	 *            the Hadoop job instance to be configured
 	 * @param zooKeepers
@@ -149,7 +140,7 @@ public class GeoWaveInputFormat<T> extends
 
 	/**
 	 * Add an adapter specific to the input format
-	 * 
+	 *
 	 * @param job
 	 * @param adapter
 	 */
@@ -271,84 +262,6 @@ public class GeoWaveInputFormat<T> extends
 						CLASS,
 						InputConfig.OUTPUT_WRITABLE),
 				false);
-	}
-
-	/**
-	 * Initializes an Accumulo {@link TabletLocator} based on the configuration.
-	 * 
-	 * @param instance
-	 *            the accumulo instance
-	 * @param tableName
-	 *            the accumulo table name
-	 * @return an Accumulo tablet locator
-	 * @throws TableNotFoundException
-	 *             if the table name set on the configuration doesn't exist
-	 * @since 1.5.0
-	 */
-	protected static TabletLocator getTabletLocator(
-			final Instance instance,
-			final String tableName,
-			final String tableId )
-			throws TableNotFoundException {
-		TabletLocator tabletLocator;
-		// @formatter:off
-		/*if[ACCUMULO_1.5.2]
-		tabletLocator = TabletLocator.getInstance(
-				instance,
-				new Text(
-						Tables.getTableId(
-								instance,
-								tableName)));
-
-  		else[ACCUMULO_1.5.2]*/
-		tabletLocator = TabletLocator.getLocator(
-				instance,
-				new Text(
-						tableId));
-		/*end[ACCUMULO_1.5.2]*/
-		// @formatter:on
-		return tabletLocator;
-	}
-
-	protected static boolean binRanges(
-			final List<Range> rangeList,
-			final String userName,
-			final String password,
-			final Map<String, Map<KeyExtent, List<Range>>> tserverBinnedRanges,
-			final TabletLocator tabletLocator,
-			final String instanceId )
-			throws AccumuloException,
-			AccumuloSecurityException,
-			TableNotFoundException,
-			IOException {
-		// @formatter:off
-		/*if[ACCUMULO_1.5.2]
-		final ByteArrayOutputStream backingByteArray = new ByteArrayOutputStream();
-		final DataOutputStream output = new DataOutputStream(
-			backingByteArray);
-		new PasswordToken(
-			password).write(output);
-		output.close();
-		final ByteBuffer buffer = ByteBuffer.wrap(backingByteArray.toByteArray());
-		final TCredentials credentials = new TCredentials(
-			    userName,
-				PasswordToken.class.getCanonicalName(),
-				buffer,
-				instanceId);
-		return tabletLocator.binRanges(
-				rangeList,
-				tserverBinnedRanges,
-				credentials).isEmpty();
-		else[ACCUMULO_1.5.2]*/
-		return tabletLocator.binRanges(
-				new Credentials(
-						userName,
-						new PasswordToken(
-								password)),
-				rangeList,
-				tserverBinnedRanges).isEmpty();
- 		/*end[ACCUMULO_1.5.2]*/
-		// @formatter:on
 	}
 
 	protected static String getInstanceName(
@@ -613,52 +526,12 @@ public class GeoWaveInputFormat<T> extends
 				}
 			}
 			// get the metadata information for these ranges
-			final Map<String, Map<KeyExtent, List<Range>>> tserverBinnedRanges = new HashMap<String, Map<KeyExtent, List<Range>>>();
-			TabletLocator tl;
+			final Locations locations;
 			try {
 				final Instance instance = getInstance(context);
-				final String tableId = Tables.getTableId(
-						instance,
-						tableName);
-				tl = getTabletLocator(
-						instance,
-						tableName,
-						tableId);
-				// its possible that the cache could contain complete, but
-				// old information about a tables tablets... so clear it
-				tl.invalidateCache();
-				final String instanceId = instance.getInstanceID();
-				final List<Range> rangeList = new ArrayList<Range>(
-						ranges);
-				final Random r = new Random();
-				while (!binRanges(
-						rangeList,
-						getUserName(context),
-						getPassword(context),
-						tserverBinnedRanges,
-						tl,
-						instanceId)) {
-					if (!(instance instanceof MockInstance)) {
-						if (!Tables.exists(
-								instance,
-								tableId)) {
-							throw new TableDeletedException(
-									tableId);
-						}
-						if (Tables.getTableState(
-								instance,
-								tableId) == TableState.OFFLINE) {
-							throw new TableOfflineException(
-									instance,
-									tableId);
-						}
-					}
-					tserverBinnedRanges.clear();
-					LOGGER.warn("Unable to locate bins for specified ranges. Retrying.");
-					UtilWaitThread.sleep(100 + r.nextInt(101));
-					// sleep randomly between 100 and 200 ms
-					tl.invalidateCache();
-				}
+			 	final Connector conn = instance.getConnector(getUserName(context), new PasswordToken(getPassword(context)));
+			 	locations = conn.tableOperations().locate(tableName, ranges);
+
 			}
 			catch (final Exception e) {
 				throw new IOException(
@@ -666,58 +539,60 @@ public class GeoWaveInputFormat<T> extends
 			}
 
 			final HashMap<String, String> hostNameCache = new HashMap<String, String>();
-			for (final Entry<String, Map<KeyExtent, List<Range>>> tserverBin : tserverBinnedRanges.entrySet()) {
-				final String tabletServer = tserverBin.getKey();
-				final String ipAddress = tabletServer.split(
-						":",
-						2)[0];
 
-				String location = hostNameCache.get(ipAddress);
-				if (location == null) {
-					final InetAddress inetAddress = InetAddress.getByName(ipAddress);
-					location = inetAddress.getHostName();
-					hostNameCache.put(
-							ipAddress,
-							location);
-				}
-				for (final Entry<KeyExtent, List<Range>> extentRanges : tserverBin.getValue().entrySet()) {
-					final Range keyExtent = extentRanges.getKey().toDataRange();
-					final Map<Index, List<RangeLocationPair>> splitInfo = new HashMap<Index, List<RangeLocationPair>>();
-					final List<RangeLocationPair> rangeList = new ArrayList<RangeLocationPair>();
-					for (final Range range : extentRanges.getValue()) {
+			for (Entry<TabletId, List<Range>> entry : locations.groupByTablet().entrySet()) {
+			  final TabletId tabletId = entry.getKey();
+			  final String tabletServer = locations.getTabletLocation(tabletId);
+			  final String ipAddress = tabletServer.split(
+                  ":",
+                  2)[0];
 
-						final Range clippedRange = keyExtent.clip(range);
-						final double cardinality = getCardinality(
-								getHistStats(
-										index,
-										adapterStore,
-										statsStore,
-										statsCache,
-										context),
-								clippedRange);
-						if (!(fullrange.beforeStartKey(clippedRange.getEndKey()) || fullrange.afterEndKey(clippedRange.getStartKey()))) {
-							rangeList.add(new RangeLocationPair(
-									clippedRange,
-									location,
-									cardinality < 1 ? 1.0 : cardinality));
-						}
-						else {
-							LOGGER.info("Query split outside of range");
-						}
-						if (LOGGER.isTraceEnabled()) {
-							LOGGER.warn("Clipped range: " + rangeList.get(
-									rangeList.size() - 1).getRange());
-						}
-					}
-					if (!rangeList.isEmpty()) {
-						splitInfo.put(
-								index,
-								rangeList);
-						splits.add(new IntermediateSplitInfo(
-								splitInfo));
-					}
-				}
-			}
+			  String location = hostNameCache.get(ipAddress);
+              if (location == null) {
+                  final InetAddress inetAddress = InetAddress.getByName(ipAddress);
+                  location = inetAddress.getHostName();
+                  hostNameCache.put(
+                          ipAddress,
+                          location);
+              }
+
+              final Range tabletRange = tabletId.toRange();
+              final Map<Index, List<RangeLocationPair>> splitInfo = new HashMap<Index, List<RangeLocationPair>>();
+              final List<RangeLocationPair> rangeList = new ArrayList<RangeLocationPair>();
+
+              for(Range range : entry.getValue()) {
+                    final Range clippedRange = tabletRange.clip(range);
+                    final double cardinality = getCardinality(
+                            getHistStats(
+                                    index,
+                                    adapterStore,
+                                    statsStore,
+                                    statsCache,
+                                    context),
+                            clippedRange);
+                    if (!(fullrange.beforeStartKey(clippedRange.getEndKey()) || fullrange.afterEndKey(clippedRange.getStartKey()))) {
+                        rangeList.add(new RangeLocationPair(
+                                clippedRange,
+                                location,
+                                cardinality < 1 ? 1.0 : cardinality));
+                    }
+                    else {
+                        LOGGER.info("Query split outside of range");
+                    }
+                    if (LOGGER.isTraceEnabled()) {
+                        LOGGER.warn("Clipped range: " + rangeList.get(
+                                rangeList.size() - 1).getRange());
+                    }
+                }
+                if (!rangeList.isEmpty()) {
+                    splitInfo.put(
+                            index,
+                            rangeList);
+                    splits.add(new IntermediateSplitInfo(
+                            splitInfo));
+                }
+
+            }
 		}
 		return splits;
 	}
@@ -872,9 +747,9 @@ public class GeoWaveInputFormat<T> extends
 
 		/**
 		 * Side effect: Break up this split.
-		 * 
+		 *
 		 * Split the ranges into two
-		 * 
+		 *
 		 * @return the new split.
 		 */
 		private synchronized IntermediateSplitInfo split(
@@ -1174,7 +1049,7 @@ public class GeoWaveInputFormat<T> extends
 
 	/**
 	 * Sets the log level for this job.
-	 * 
+	 *
 	 * @param job
 	 *            the Hadoop job instance to be configured
 	 * @param level
@@ -1192,7 +1067,7 @@ public class GeoWaveInputFormat<T> extends
 
 	/**
 	 * Gets the log level from this configuration.
-	 * 
+	 *
 	 * @param context
 	 *            the Hadoop context for the configured job
 	 * @return the log level
@@ -1209,7 +1084,7 @@ public class GeoWaveInputFormat<T> extends
 	/**
 	 * Check whether a configuration is fully configured to be used with an
 	 * Accumulo {@link org.apache.hadoop.mapreduce.InputFormat}.
-	 * 
+	 *
 	 * @param context
 	 *            the Hadoop context for the configured job
 	 * @throws IOException
@@ -1273,7 +1148,7 @@ public class GeoWaveInputFormat<T> extends
 
 	/**
 	 * First look for input-specific adapters
-	 * 
+	 *
 	 * @param context
 	 * @param adapterStore
 	 * @return
